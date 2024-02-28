@@ -29,6 +29,8 @@ func (r rcptMismatchFilter) Validate(e session.Transaction) error {
 
 type blackList []string
 
+// BlackListFilter sets filters defined as regexp pattern.
+// If at least one pattern matches, the filter returns an error.
 func BlackListFilter(patterns ...string) blackList {
 	return blackList(patterns)
 }
