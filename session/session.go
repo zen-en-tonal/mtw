@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jhillyerd/enmime"
+	"github.com/zen-en-tonal/mtw/sync"
 )
 
 // Filter determains the mail should be recieved.
@@ -23,6 +24,18 @@ func (f nullFilter) Validate(t Transaction) error {
 	return nil
 }
 
+// Filters is an array of Filter.
+type Filters []Filter
+
+func (f Filters) Validate(t Transaction) error {
+	f = append(f, nullFilter{})
+	fs := make([]func(Transaction) error, len(f))
+	for _, x := range f {
+		fs = append(fs, x.Validate)
+	}
+	return sync.TryAll(t, fs...)
+}
+
 // Hook hooks
 type Hook interface {
 	// Send sends a Transaction.
@@ -35,6 +48,27 @@ type nullHook struct{}
 
 func (h nullHook) Send(t Transaction) error {
 	return nil
+}
+
+func prepareHooks(hs []Hook) []func(Transaction) error {
+	hs = append(hs, nullHook{})
+	functions := make([]func(Transaction) error, len(hs))
+	for _, f := range hs {
+		functions = append(functions, f.Send)
+	}
+	return functions
+}
+
+type HooksAll []Hook
+
+func (h HooksAll) Send(t Transaction) error {
+	return sync.TryAll(t, prepareHooks(h)...)
+}
+
+type HooksSome []Hook
+
+func (h HooksSome) Send(t Transaction) error {
+	return sync.TrySome(t, prepareHooks(h)...)
 }
 
 type Logger interface {
