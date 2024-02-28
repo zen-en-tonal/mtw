@@ -13,18 +13,28 @@ func createMail(message string) io.Reader {
 	return strings.NewReader(header + message)
 }
 
-func TestRcptMismatchFilter_Spam(t *testing.T) {
+func prepareSession(options ...session.Option) session.Session {
 	session := session.New(
-		session.WithFilters(RcptMismatchFilter()),
+		options...,
 	)
 	if err := session.SetMail("alice<alice@mail.com>"); err != nil {
-		t.Error(err)
+		panic(err)
 	}
-	if err := session.SetRcpt("spam<smap@mail.com>"); err != nil {
-		t.Error(err)
+	if err := session.SetRcpt("bob<bob@mail.com>"); err != nil {
+		panic(err)
 	}
 	if err := session.SetData(createMail("<strong>hello</strong>")); err != nil {
-		t.Error(err)
+		panic(err)
+	}
+	return session
+}
+
+func TestRcptMismatchFilter_Spam(t *testing.T) {
+	session := prepareSession(
+		session.WithFilters(RcptMismatchFilter()),
+	)
+	if err := session.SetRcpt("tom<tom@mail.com>"); err != nil {
+		panic(err)
 	}
 	if err := session.Commit(); err == nil {
 		t.Error("should error")
@@ -32,17 +42,40 @@ func TestRcptMismatchFilter_Spam(t *testing.T) {
 }
 
 func TestRcptMismatchFilter_Not_Spam(t *testing.T) {
-	session := session.New(
+	session := prepareSession(
 		session.WithFilters(RcptMismatchFilter()),
 	)
-	if err := session.SetMail("alice<alice@mail.com>"); err != nil {
-		t.Error(err)
-	}
 	if err := session.SetRcpt("bob<bob@mail.com>"); err != nil {
+		panic(err)
+	}
+	if err := session.Commit(); err != nil {
 		t.Error(err)
 	}
-	if err := session.SetData(createMail("<strong>hello</strong>")); err != nil {
-		t.Error(err)
+}
+
+func TestBlacklist_Reject(t *testing.T) {
+	session := prepareSession(
+		session.WithFilters(BlackListFilter(
+			`^apple@[a-z]+\.[a-z]+$`,
+			`^spam@[a-z]+\.[a-z]+$`,
+		)),
+	)
+	if err := session.SetRcpt("spam<spam@mail.com>"); err != nil {
+		panic(err)
+	}
+	if err := session.Commit(); err == nil {
+		t.Error("should error")
+	}
+}
+
+func TestBlacklist_Pass(t *testing.T) {
+	session := prepareSession(
+		session.WithFilters(BlackListFilter(
+			`^spam@[a-z]+\.[a-z]+$`,
+		)),
+	)
+	if err := session.SetRcpt("bob<bob@mail.com>"); err != nil {
+		panic(err)
 	}
 	if err := session.Commit(); err != nil {
 		t.Error(err)
