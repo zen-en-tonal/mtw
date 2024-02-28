@@ -59,3 +59,10 @@ func WithHooksSome(xs ...Hook) Option {
 		}
 	}
 }
+
+// WithLogger sets a Logger into the Session.
+func WithLogger(logger Logger) Option {
+	return func(s *Session) {
+		s.logger = logger
+	}
+}

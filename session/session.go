@@ -2,6 +2,7 @@ package session
 
 import (
 	"io"
+	"log/slog"
 	"net/mail"
 
 	"github.com/google/uuid"
@@ -36,9 +37,15 @@ func (h nullHook) Send(t Transaction) error {
 	return nil
 }
 
+type Logger interface {
+	Error(meg string, args ...any)
+}
+
 type Session struct {
 	Filter
 	Hook
+
+	logger Logger
 
 	id       uuid.UUID
 	sender   *mail.Address
@@ -54,6 +61,7 @@ func New(options ...Option) Session {
 		Filter: nullFilter{},
 		Hook:   nullHook{},
 		id:     uuid.New(),
+		logger: slog.Default(),
 	}
 	for _, opt := range options {
 		opt(&s)
@@ -111,6 +119,17 @@ func (s Session) Commit() error {
 		return err
 	}
 	if err := s.Validate(*trans); err != nil {
+		s.logger.Error(
+			"validation failure",
+			"reason", err,
+			"id", trans.ID.String(),
+			"sender", trans.Sender.String(),
+			"rcpt", trans.Rcpt.String(),
+			"from", trans.Envelope.GetHeader("From"),
+			"to", trans.Envelope.GetHeader("To"),
+			"subject", trans.Envelope.GetHeader("Subject"),
+			"text", trans.Envelope.Text,
+		)
 		return err
 	}
 	return s.Send(*trans)
