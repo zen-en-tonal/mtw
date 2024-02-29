@@ -14,7 +14,7 @@ type HookSet interface {
 type hookSet struct{ HookSet }
 
 func (h hookSet) Send(trans session.Transaction) error {
-	addr, err := ParseAddr(trans.Envelope.GetHeader("To"))
+	addr, err := ParseAddr(trans.To())
 	if err != nil {
 		return err
 	}

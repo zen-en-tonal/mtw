@@ -16,8 +16,8 @@ func RcptMismatchFilter() rcptMismatchFilter {
 type rcptMismatchFilter struct{}
 
 func (r rcptMismatchFilter) Validate(e session.Transaction) error {
-	rcpt := e.Rcpt.Address
-	to, err := mail.ParseAddress(e.Envelope.GetHeader("To"))
+	rcpt := e.RcptAddress()
+	to, err := mail.ParseAddress(e.To())
 	if err != nil {
 		return session.ErrNilEnvelope
 	}
@@ -36,8 +36,8 @@ func BlackListFilter(patterns ...string) blackList {
 }
 
 func (patterns blackList) Validate(e session.Transaction) error {
-	rcpt := e.Rcpt.Address
-	to, err := mail.ParseAddress(e.Envelope.GetHeader("To"))
+	rcpt := e.RcptAddress()
+	to, err := mail.ParseAddress(e.To())
 	if err != nil {
 		return session.ErrNilEnvelope
 	}

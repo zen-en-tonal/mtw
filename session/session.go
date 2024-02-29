@@ -151,12 +151,12 @@ func (s Session) Commit() error {
 			"validation failure",
 			"reason", err,
 			"id", trans.ID.String(),
-			"sender", trans.Sender.String(),
-			"rcpt", trans.Rcpt.String(),
-			"from", trans.Envelope.GetHeader("From"),
-			"to", trans.Envelope.GetHeader("To"),
-			"subject", trans.Envelope.GetHeader("Subject"),
-			"text", trans.Envelope.Text,
+			"sender", trans.SenderAddress(),
+			"rcpt", trans.RcptAddress(),
+			"from", trans.From(),
+			"to", trans.To(),
+			"subject", trans.Subject(),
+			"text", trans.Text(),
 		)
 		return err
 	}
@@ -178,10 +178,10 @@ func (s Session) IntoTransaction() (*Transaction, error) {
 
 type Transaction struct {
 	ID       uuid.UUID
-	Sender   mail.Address
-	Rcpt     mail.Address
-	Envelope enmime.Envelope
-	Raw      io.Reader
+	sender   mail.Address
+	rcpt     mail.Address
+	envelope enmime.Envelope
+	raw      io.Reader
 }
 
 func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body io.Reader) (*Transaction, error) {
@@ -191,45 +191,45 @@ func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body i
 	}
 	return &Transaction{
 		ID:       id,
-		Sender:   sender,
-		Rcpt:     rcpt,
-		Envelope: *env,
-		Raw:      body,
+		sender:   sender,
+		rcpt:     rcpt,
+		envelope: *env,
+		raw:      body,
 	}, nil
 }
 
 func (t Transaction) SenderName() string {
-	return t.Sender.Name
+	return t.sender.Name
 }
 
 func (t Transaction) SenderAddress() string {
-	return t.Sender.Address
+	return t.sender.Address
 }
 
 func (t Transaction) RcptName() string {
-	return t.Rcpt.Name
+	return t.rcpt.Name
 }
 
 func (t Transaction) RcptAddress() string {
-	return t.Rcpt.Address
+	return t.rcpt.Address
 }
 
 func (t Transaction) HTML() string {
-	return t.Envelope.HTML
+	return t.envelope.HTML
 }
 
 func (t Transaction) Text() string {
-	return t.Envelope.Text
+	return t.envelope.Text
 }
 
 func (t Transaction) From() string {
-	return t.Envelope.GetHeader("From")
+	return t.envelope.GetHeader("From")
 }
 
 func (t Transaction) To() string {
-	return t.Envelope.GetHeader("To")
+	return t.envelope.GetHeader("To")
 }
 
 func (t Transaction) Subject() string {
-	return t.Envelope.GetHeader("Subject")
+	return t.envelope.GetHeader("Subject")
 }
