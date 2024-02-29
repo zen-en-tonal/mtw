@@ -81,11 +81,10 @@ type Session struct {
 
 	logger Logger
 
-	id       uuid.UUID
-	sender   *mail.Address
-	rcpt     *mail.Address
-	envelope *enmime.Envelope
-	data     io.Reader
+	id     uuid.UUID
+	sender *mail.Address
+	rcpt   *mail.Address
+	data   io.Reader
 }
 
 type Option func(*Session)
@@ -125,11 +124,6 @@ func (s *Session) SetRcpt(addr string) error {
 
 // SetData parse body into an Envelope and sets it into the Session.
 func (s *Session) SetData(r io.Reader) error {
-	env, err := enmime.ReadEnvelope(r)
-	if err != nil {
-		return err
-	}
-	s.envelope = env
 	s.data = r
 	return nil
 }
@@ -138,7 +132,7 @@ func (s *Session) SetData(r io.Reader) error {
 func (s *Session) Reset() {
 	s.sender = nil
 	s.rcpt = nil
-	s.envelope = nil
+	s.data = nil
 }
 
 // Commit creates, validates, and sends a Transaction.
@@ -148,7 +142,7 @@ func (s *Session) Reset() {
 //   - Validate failed.
 //   - Send failed.
 func (s Session) Commit() error {
-	trans, err := s.intoTransaction()
+	trans, err := s.IntoTransaction()
 	if err != nil {
 		return err
 	}
@@ -169,8 +163,8 @@ func (s Session) Commit() error {
 	return s.Send(*trans)
 }
 
-func (s Session) intoTransaction() (*Transaction, error) {
-	if s.envelope == nil || s.data == nil {
+func (s Session) IntoTransaction() (*Transaction, error) {
+	if s.data == nil {
 		return nil, ErrNilEnvelope
 	}
 	if s.rcpt == nil {
@@ -179,13 +173,7 @@ func (s Session) intoTransaction() (*Transaction, error) {
 	if s.sender == nil {
 		return nil, ErrNilSender
 	}
-	return &Transaction{
-		ID:       s.id,
-		Sender:   *s.sender,
-		Rcpt:     *s.rcpt,
-		Envelope: *s.envelope,
-		Raw:      s.data,
-	}, nil
+	return NewTransaction(s.id, *s.sender, *s.rcpt, s.data)
 }
 
 type Transaction struct {
@@ -194,4 +182,54 @@ type Transaction struct {
 	Rcpt     mail.Address
 	Envelope enmime.Envelope
 	Raw      io.Reader
+}
+
+func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body io.Reader) (*Transaction, error) {
+	env, err := enmime.ReadEnvelope(body)
+	if err != nil {
+		return nil, err
+	}
+	return &Transaction{
+		ID:       id,
+		Sender:   sender,
+		Rcpt:     rcpt,
+		Envelope: *env,
+		Raw:      body,
+	}, nil
+}
+
+func (t Transaction) SenderName() string {
+	return t.Sender.Name
+}
+
+func (t Transaction) SenderAddress() string {
+	return t.Sender.Address
+}
+
+func (t Transaction) RcptName() string {
+	return t.Rcpt.Name
+}
+
+func (t Transaction) RcptAddress() string {
+	return t.Rcpt.Address
+}
+
+func (t Transaction) HTML() string {
+	return t.Envelope.HTML
+}
+
+func (t Transaction) Text() string {
+	return t.Envelope.Text
+}
+
+func (t Transaction) From() string {
+	return t.Envelope.GetHeader("From")
+}
+
+func (t Transaction) To() string {
+	return t.Envelope.GetHeader("To")
+}
+
+func (t Transaction) Subject() string {
+	return t.Envelope.GetHeader("Subject")
 }
