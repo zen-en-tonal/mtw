@@ -1,7 +1,8 @@
 package mailbox
 
 import (
-	"errors"
+	"fmt"
+	"net/mail"
 	"regexp"
 	"strings"
 
@@ -10,19 +11,32 @@ import (
 
 var mailAddressRegexp = regexp.MustCompile(`^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`)
 
-// Address represents a mail address.
-type Address string
+// Address represents an email address.
+type Address struct {
+	user   string // e.g. Alice <`alice`@mail.com>.
+	domain string // e.g. Alice <alice@`mail.com`>.
+	name   string // e.g. `Alice` <alice@mail.com>. name can be empty.
+}
 
 // ParseAddr creates an Address from one line string.
 //
 // # Errors
-//   - If addr is invalid format for mail address.
-func ParseAddr(addr string) (*Address, error) {
-	if !mailAddressRegexp.Match([]byte(addr)) {
-		return nil, errors.New("invalid")
+//   - If address is invalid format for mail address.
+func ParseAddr(address string) (*Address, error) {
+	addr, err := mail.ParseAddress(address)
+	if err != nil {
+		return nil, err
 	}
-	a := Address(addr)
-	return &a, nil
+	// This line maybe not necessary
+	// because mail.ParseAddress might check the address.
+	if !mailAddressRegexp.Match([]byte(addr.Address)) {
+		return nil, fmt.Errorf("address %s is invalid", address)
+	}
+	return &Address{
+		user:   strings.Split(addr.Address, "@")[0],
+		domain: strings.Split(addr.Address, "@")[1],
+		name:   addr.Name,
+	}, nil
 }
 
 // MustParseAddr creates an Address from one line string.
@@ -55,14 +69,15 @@ func RandomAddr(domain string) (*Address, error) {
 
 // User returns a section of user in address.
 func (a Address) User() string {
-	return strings.Split(a.String(), "@")[0]
+	return a.user
 }
 
 // Domain returns a section of domain in address.
 func (a Address) Domain() string {
-	return strings.Split(a.String(), "@")[1]
+	return a.domain
 }
 
+// String returns the address as string. e.g. alice@mail.com
 func (a Address) String() string {
-	return string(a)
+	return a.name + "@" + a.domain
 }
