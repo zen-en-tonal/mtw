@@ -41,8 +41,8 @@ func TestOk(t *testing.T) {
 		t.Error(err)
 	}
 	assert.NotEmpty(t, spy.res.ID)
-	assert.Equal(t, "alice@mail.com", spy.res.Sender.Address)
-	assert.Equal(t, "bob@mail.com", spy.res.Rcpt.Address)
+	assert.Equal(t, "alice@mail.com", spy.res.sender.Address)
+	assert.Equal(t, "bob@mail.com", spy.res.rcpt.Address)
 }
 
 type errFilter struct{}
