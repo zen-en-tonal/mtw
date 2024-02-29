@@ -4,7 +4,10 @@ import (
 	"github.com/zen-en-tonal/mtw/session"
 )
 
+// FilterSet represents a set of filters.
 type FilterSet interface {
+	// FindFilters returns an array of Filters or an error.
+	// If no Filters matched the key `addr`, returns an empty array.
 	FindFilters(addr Address) ([]session.Filter, error)
 }
 

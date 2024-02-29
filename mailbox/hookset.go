@@ -4,7 +4,10 @@ import (
 	"github.com/zen-en-tonal/mtw/session"
 )
 
+// HookSet represents a set of hooks.
 type HookSet interface {
+	// FindHooks returns an array of Hooks or an error.
+	// If no Hooks matched the key `addr`, returns an empty array.
 	FindHooks(addr Address) ([]session.Hook, error)
 }
 

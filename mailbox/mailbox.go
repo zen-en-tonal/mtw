@@ -14,6 +14,7 @@ type Mailbox struct {
 	logger  session.Logger
 }
 
+// New returns the Mailbox by using Options.
 func New(options ...Option) Mailbox {
 	mb := Mailbox{
 		filters: nil,
@@ -26,6 +27,7 @@ func New(options ...Option) Mailbox {
 	return mb
 }
 
+// NewSession returns the configured Session.
 func (m Mailbox) NewSession() session.Session {
 	s := session.New(
 		session.WithLogger(m.logger),
