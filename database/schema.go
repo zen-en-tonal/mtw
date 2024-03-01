@@ -18,4 +18,10 @@ CREATE TABLE IF NOT EXISTS addresses_webhooks (
 
     constraint addresses_webhooks_pk primary key (address, webhook_id)
 );
+
+CREATE TABLE IF NOT EXISTS addresses (
+    address text,
+
+    constraint addresses_pk primary key (address)
+);
 `
