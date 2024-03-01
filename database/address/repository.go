@@ -2,6 +2,7 @@ package address
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zen-en-tonal/mtw/database"
@@ -29,4 +30,18 @@ func (r addressRepository) all() (*[]addressTable, error) {
 		return nil, err
 	}
 	return &tables, nil
+}
+
+func (r addressRepository) findOne(addr string) (*addressTable, error) {
+	var table *addressTable
+	if err := r.conn.Select(
+		&table,
+		`SELECT * FROM addresses FROM address = $1`,
+		addr); err != nil {
+		return nil, err
+	}
+	if table != nil {
+		return nil, fmt.Errorf("addr %s not found", addr)
+	}
+	return table, nil
 }

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -45,4 +46,16 @@ func (f Find) ByID(id webhook.WebhookID) (*webhook.Webhook, error) {
 		return nil, err
 	}
 	return hook, nil
+}
+
+func (f Find) FindHooks(addr mailbox.Address) ([]session.Hook, error) {
+	webhooks, err := f.ByAddr(addr)
+	if err != nil {
+		return nil, err
+	}
+	hooks := make([]session.Hook, len(*webhooks))
+	for i, webhook := range *webhooks {
+		hooks[i] = webhook
+	}
+	return hooks, nil
 }
