@@ -17,6 +17,7 @@ type webhookTable struct {
 	ContentType string    `db:"content_type"`
 }
 
+// into converts a webhookTable into a Webhook.
 func (w webhookTable) into() (*webhook.Webhook, error) {
 	var options []webhook.Option
 	options = append(options, webhook.WithID(w.ID))
