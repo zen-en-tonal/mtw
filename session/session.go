@@ -53,8 +53,8 @@ func (h nullHook) Send(t Transaction) error {
 func prepareHooks(hs []Hook) []func(Transaction) error {
 	hs = append(hs, nullHook{})
 	functions := make([]func(Transaction) error, len(hs))
-	for _, f := range hs {
-		functions = append(functions, f.Send)
+	for i, f := range hs {
+		functions[i] = f.Send
 	}
 	return functions
 }
@@ -100,6 +100,11 @@ func New(options ...Option) Session {
 		opt(&s)
 	}
 	return s
+}
+
+// ID returns uuid.
+func (s Session) ID() uuid.UUID {
+	return s.id
 }
 
 // SetMail parse a sender address and sets it into the Session.
