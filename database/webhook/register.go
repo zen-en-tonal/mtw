@@ -7,19 +7,22 @@ import (
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
-type Registory struct {
+type Registry struct {
 	webhookRepository
 	mailbox.Address
 }
 
-func NewRegistory(db *sql.DB, addr mailbox.Address) Registory {
-	return Registory{newRepository(db), addr}
+// NewRegistry returns a handle to register a Webhook to the Address.
+func NewRegistry(db *sql.DB, addr mailbox.Address) Registry {
+	return Registry{newRepository(db), addr}
 }
 
-func (r Registory) Create(id webhook.WebhookID) error {
+// Create registers the Webhook to the Address in the context.
+func (r Registry) Create(id webhook.WebhookID) error {
 	return r.insertAddressWebhook(r.Address, id)
 }
 
-func (r Registory) Remove(id webhook.WebhookID) error {
+// Remove deletes the Webhook on the Address in the context.
+func (r Registry) Remove(id webhook.WebhookID) error {
 	return r.deleteAddressWebhook(r.Address, id)
 }

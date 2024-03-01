@@ -10,11 +10,12 @@ import (
 
 type Create struct{ webhookRepository }
 
+// NewCreate returns a handle to create and persist a Webhook.
 func NewCreate(db *sql.DB) Create {
 	return Create{newRepository(db)}
 }
 
-func (c Create) create(table webhookTable) (*webhook.Webhook, error) {
+func (c Create) persist(table webhookTable) (*webhook.Webhook, error) {
 	hook, err := table.into()
 	if err != nil {
 		return nil, err
@@ -25,6 +26,7 @@ func (c Create) create(table webhookTable) (*webhook.Webhook, error) {
 	return hook, nil
 }
 
+// ForGet creates and persist a Webhook to send a GET request.
 func (c Create) ForGet(endpoint string, auth string) (*webhook.Webhook, error) {
 	table := webhookTable{
 		ID:       uuid.New(),
@@ -32,9 +34,10 @@ func (c Create) ForGet(endpoint string, auth string) (*webhook.Webhook, error) {
 		Auth:     auth,
 		Method:   http.MethodGet,
 	}
-	return c.create(table)
+	return c.persist(table)
 }
 
+// ForPost creates and persist a Webhook to send a POST request.
 func (c Create) ForPost(endpoint string, schema string, contentType string, auth string) (*webhook.Webhook, error) {
 	table := webhookTable{
 		ID:          uuid.New(),
@@ -44,5 +47,5 @@ func (c Create) ForPost(endpoint string, schema string, contentType string, auth
 		Schema:      schema,
 		ContentType: contentType,
 	}
-	return c.create(table)
+	return c.persist(table)
 }

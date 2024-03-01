@@ -9,10 +9,12 @@ import (
 
 type Find struct{ webhookRepository }
 
+// NewFind returns a handle to get Webhooks.
 func NewFind(db *sql.DB) Find {
 	return Find{newRepository(db)}
 }
 
+// ByAddr returns Webhooks by Address.
 func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
 	tables, err := f.findByAddr(addr)
 	if err != nil {
@@ -29,6 +31,10 @@ func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
 	return &hooks, nil
 }
 
+// ByID returns a Webhook by WebhookID.
+//
+// # Errors
+//   - If no Webhook found.
 func (f Find) ByID(id webhook.WebhookID) (*webhook.Webhook, error) {
 	table, err := f.findOne(id)
 	if err != nil {
