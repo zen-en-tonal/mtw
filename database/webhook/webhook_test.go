@@ -32,12 +32,12 @@ func testTransaction() session.Transaction {
 }
 
 func Test_parseOption_Post(t *testing.T) {
-	webhook, err := Webhook{
+	webhook, err := webhookTable{
 		Endpoint:    "http://example.com",
 		Method:      "POST",
 		Auth:        "secret",
 		ContentType: "application/json",
-	}.Into()
+	}.into()
 	if err != nil {
 		t.Error(err)
 	}
