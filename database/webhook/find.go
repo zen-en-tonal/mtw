@@ -1,12 +1,17 @@
 package webhook
 
 import (
-	"github.com/google/uuid"
+	"database/sql"
+
 	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
-type Find struct{ WebhookRepository }
+type Find struct{ webhookRepository }
+
+func NewFind(db *sql.DB) Find {
+	return Find{newRepository(db)}
+}
 
 func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
 	tables, err := f.findByAddr(addr)
@@ -24,7 +29,7 @@ func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
 	return &hooks, nil
 }
 
-func (f Find) ByID(id uuid.UUID) (*webhook.Webhook, error) {
+func (f Find) ByID(id webhook.WebhookID) (*webhook.Webhook, error) {
 	table, err := f.findOne(id)
 	if err != nil {
 		return nil, err

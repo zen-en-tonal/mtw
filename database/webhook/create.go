@@ -1,13 +1,18 @@
 package webhook
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
-type Create struct{ WebhookRepository }
+type Create struct{ webhookRepository }
+
+func NewCreate(db *sql.DB) Create {
+	return Create{newRepository(db)}
+}
 
 func (c Create) create(table webhookTable) (*webhook.Webhook, error) {
 	hook, err := table.into()

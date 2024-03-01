@@ -4,22 +4,22 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/webhook"
 )
 
 const Driver = "postgres"
 
-type WebhookRepository struct {
+type webhookRepository struct {
 	conn *sqlx.DB
 }
 
-func NewRepository(db *sql.DB) WebhookRepository {
-	return WebhookRepository{sqlx.NewDb(db, Driver)}
+func newRepository(db *sql.DB) webhookRepository {
+	return webhookRepository{sqlx.NewDb(db, Driver)}
 }
 
-func (r WebhookRepository) upsert(table webhookTable) error {
+func (r webhookRepository) upsert(table webhookTable) error {
 	_, err := r.conn.Exec(`
 		INSERT INTO webhooks VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (id)
@@ -41,7 +41,7 @@ func (r WebhookRepository) upsert(table webhookTable) error {
 	return err
 }
 
-func (r WebhookRepository) findOne(id uuid.UUID) (*webhookTable, error) {
+func (r webhookRepository) findOne(id webhook.WebhookID) (*webhookTable, error) {
 	table := new(webhookTable)
 	if err := r.conn.Select(&table, `
 		SELECT
@@ -60,7 +60,7 @@ func (r WebhookRepository) findOne(id uuid.UUID) (*webhookTable, error) {
 	return table, nil
 }
 
-func (r WebhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, error) {
+func (r webhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, error) {
 	var tables []webhookTable
 	if err := r.conn.Select(&tables, `
 		SELECT
@@ -78,7 +78,7 @@ func (r WebhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, er
 	return &tables, nil
 }
 
-func (r *WebhookRepository) insertAddressWebhook(addr mailbox.Address, webhookID uuid.UUID) error {
+func (r *webhookRepository) insertAddressWebhook(addr mailbox.Address, webhookID webhook.WebhookID) error {
 	_, err := r.conn.Exec(`
 		INSERT INTO addresses_webhooks (
 			address
@@ -93,7 +93,7 @@ func (r *WebhookRepository) insertAddressWebhook(addr mailbox.Address, webhookID
 	return err
 }
 
-func (r *WebhookRepository) deleteAddressWebhook(addr mailbox.Address, webhookID uuid.UUID) error {
+func (r *webhookRepository) deleteAddressWebhook(addr mailbox.Address, webhookID webhook.WebhookID) error {
 	_, err := r.conn.Exec(`
 		DELETE FROM addresses_webhooks
 		WHERE

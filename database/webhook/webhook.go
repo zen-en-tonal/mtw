@@ -19,6 +19,7 @@ type webhookTable struct {
 
 func (w webhookTable) into() (*webhook.Webhook, error) {
 	var options []webhook.Option
+	options = append(options, webhook.WithID(w.ID))
 	if w.Method == http.MethodPost {
 		tmpl, err := template.New("").Parse(w.Schema)
 		if err != nil {
