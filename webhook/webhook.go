@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/zen-en-tonal/mtw/session"
 )
 
@@ -38,8 +39,15 @@ func WithTimeout(d time.Duration) Option {
 	}
 }
 
+func WithID(id uuid.UUID) Option {
+	return func(w *Webhook) {
+		w.id = WebhookID(id)
+	}
+}
+
 func WithDefault() Option {
 	return func(w *Webhook) {
+		w.id = WebhookID(uuid.New())
 		w.header = http.Header{}
 		w.method = "GET"
 		w.Timeout = time.Second * 10
@@ -52,8 +60,11 @@ type Logger interface {
 	Error(msg string, args ...any)
 }
 
+type WebhookID uuid.UUID
+
 type Webhook struct {
 	http.Client
+	id       WebhookID
 	endpoint string
 	method   string
 	header   http.Header
@@ -68,6 +79,10 @@ func New(endpoint string, options ...Option) Webhook {
 		opt(&w)
 	}
 	return w
+}
+
+func (e Webhook) ID() WebhookID {
+	return e.id
 }
 
 func (w Webhook) Send(t session.Transaction) error {
