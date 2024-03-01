@@ -5,18 +5,17 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zen-en-tonal/mtw/database"
 	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
-
-const Driver = "postgres"
 
 type webhookRepository struct {
 	conn *sqlx.DB
 }
 
 func newRepository(db *sql.DB) webhookRepository {
-	return webhookRepository{sqlx.NewDb(db, Driver)}
+	return webhookRepository{sqlx.NewDb(db, database.Driver)}
 }
 
 func (r webhookRepository) upsert(table webhookTable) error {

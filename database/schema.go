@@ -1,4 +1,6 @@
-package datastore
+package database
+
+const Driver = "postgres"
 
 const Schema = `
 CREATE TABLE IF NOT EXISTS webhooks (
@@ -17,5 +19,11 @@ CREATE TABLE IF NOT EXISTS addresses_webhooks (
     webhook_id uuid,
 
     constraint addresses_webhooks_pk primary key (address, webhook_id)
+);
+
+CREATE TABLE IF NOT EXISTS addresses (
+    address text,
+
+    constraint addresses_pk primary key (address)
 );
 `

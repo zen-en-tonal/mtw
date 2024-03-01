@@ -21,12 +21,12 @@ func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
 		return nil, err
 	}
 	hooks := make([]webhook.Webhook, len(*tables))
-	for _, table := range *tables {
+	for i, table := range *tables {
 		hook, err := table.into()
 		if err != nil {
 			return nil, err
 		}
-		hooks = append(hooks, *hook)
+		hooks[i] = *hook
 	}
 	return &hooks, nil
 }
