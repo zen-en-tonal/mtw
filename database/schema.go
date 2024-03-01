@@ -1,4 +1,6 @@
-package datastore
+package database
+
+const Driver = "postgres"
 
 const Schema = `
 CREATE TABLE IF NOT EXISTS webhooks (
