@@ -62,6 +62,11 @@ type Logger interface {
 
 type WebhookID uuid.UUID
 
+// String returns an uuid as string e.g. 271be94b-36d1-802e-d200-c1e0b85580b2
+func (i WebhookID) String() string {
+	return uuid.UUID(i).String()
+}
+
 type Webhook struct {
 	http.Client
 	id       WebhookID
