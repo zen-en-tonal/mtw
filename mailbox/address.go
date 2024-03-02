@@ -77,7 +77,12 @@ func (a Address) Domain() string {
 	return a.domain
 }
 
+// Name returns a section of name in address.
+func (a Address) Name() string {
+	return a.name
+}
+
 // String returns the address as string. e.g. alice@mail.com
 func (a Address) String() string {
-	return a.name + "@" + a.domain
+	return a.user + "@" + a.domain
 }
