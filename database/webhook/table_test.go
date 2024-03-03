@@ -35,6 +35,7 @@ func Test_parseOption_Post(t *testing.T) {
 		Endpoint:    "http://example.com",
 		Method:      "POST",
 		Auth:        "secret",
+		Schema:      "{}",
 		ContentType: "application/json",
 	}.into()
 	if err != nil {
