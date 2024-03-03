@@ -60,6 +60,14 @@ func (r webhookRepository) findOne(id webhook.WebhookID) (*webhookTable, error) 
 	return &table, nil
 }
 
+func (r webhookRepository) findAll() (*[]webhookTable, error) {
+	var tables []webhookTable
+	if err := r.conn.Select(&tables, `SELECT webhooks.* FROM webhooks`); err != nil {
+		return nil, err
+	}
+	return &tables, nil
+}
+
 func (r webhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, error) {
 	var tables []webhookTable
 	if err := r.conn.Select(&tables, `

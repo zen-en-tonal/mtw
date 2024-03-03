@@ -61,3 +61,25 @@ func Test_GET_Webhook(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, `{"id":"271be94b-36d1-802e-d200-c1e0b85580b2","endpoint":"http://endpoint.com","auth":"","schema":"","method":"GET","content_type":""}`, w.Body.String())
 }
+
+func Test_GET_AllWebhook(t *testing.T) {
+	id := uuid.MustParse("271be94b-36d1-802e-d200-c1e0b85580b2")
+	router := gin.Default()
+	newWebhooksRoute(webhookService{
+		all: func() (*[]webhook.Webhook, error) {
+			w := webhook.New("http://endpoint.com", webhook.WithID(id))
+			return &[]webhook.Webhook{w}, nil
+		},
+	}).register(router)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(
+		"GET",
+		"/webhooks",
+		nil,
+	)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, `[{"id":"271be94b-36d1-802e-d200-c1e0b85580b2","endpoint":"http://endpoint.com","auth":"","schema":"","method":"GET","content_type":""}]`, w.Body.String())
+}

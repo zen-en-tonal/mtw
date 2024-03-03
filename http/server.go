@@ -34,6 +34,7 @@ func NewWithDB(db *sql.DB, domain string, logger Logger) *gin.Engine {
 		webhookService{
 			create: webhook.NewCreate(db).FromBlueprint,
 			find:   webhook.NewFind(db).ByID,
+			all:    webhook.NewFind(db).All,
 		},
 		logger,
 	}

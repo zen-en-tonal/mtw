@@ -48,6 +48,23 @@ func (f Find) ByID(id webhook.WebhookID) (*webhook.Webhook, error) {
 	return hook, nil
 }
 
+// All returns an array of Webhook.
+func (f Find) All() (*[]webhook.Webhook, error) {
+	tables, err := f.findAll()
+	if err != nil {
+		return nil, err
+	}
+	hooks := make([]webhook.Webhook, len(*tables))
+	for i, table := range *tables {
+		hook, err := table.into()
+		if err != nil {
+			return nil, err
+		}
+		hooks[i] = *hook
+	}
+	return &hooks, nil
+}
+
 func (f Find) FindHooks(addr mailbox.Address) ([]session.Hook, error) {
 	webhooks, err := f.ByAddr(addr)
 	if err != nil {

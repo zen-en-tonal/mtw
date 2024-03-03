@@ -11,6 +11,7 @@ import (
 type webhookService struct {
 	create func(bp webhook.Blueprint) (*webhook.Webhook, error)
 	find   func(id webhook.WebhookID) (*webhook.Webhook, error)
+	all    func() (*[]webhook.Webhook, error)
 }
 
 type webhookRoute struct {
@@ -41,6 +42,7 @@ func (f webhookJson) into() webhook.Blueprint {
 func (r webhookRoute) register(e *gin.Engine) {
 	e.POST("/webhook", r.new)
 	e.GET("/webhook/:id", r.findOne)
+	e.GET("/webhooks", r.findAll)
 }
 
 func (w webhookRoute) new(c *gin.Context) {
@@ -82,4 +84,27 @@ func (w webhookRoute) findOne(c *gin.Context) {
 		Method:      bp.Method,
 		ContentType: bp.ContentType,
 	})
+}
+
+func (w webhookRoute) findAll(c *gin.Context) {
+	webhooks, err := w.all()
+	if err != nil {
+		w.Logger.Error("findAll", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	bps := make([]webhookJson, len(*webhooks))
+	for i, webhook := range *webhooks {
+		bp := webhook.IntoBlueprint()
+		bps[i] = webhookJson{
+			ID:          bp.ID,
+			Endpoint:    bp.Endpoint,
+			Auth:        bp.Auth,
+			Schema:      bp.Schema,
+			Method:      bp.Method,
+			ContentType: bp.ContentType,
+		}
+	}
+	c.JSON(http.StatusOK, bps)
 }
