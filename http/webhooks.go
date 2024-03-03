@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -37,7 +38,7 @@ func (f webhookJson) do(r *webhookRoute) (*webhook.Webhook, error) {
 
 func (r webhookRoute) register(e *gin.Engine) {
 	e.POST("/webhook", r.new)
-	e.GET("/webhook/:id", r.find)
+	e.GET("/webhook/:id", r.findOne)
 }
 
 func (w webhookRoute) new(c *gin.Context) {
@@ -54,16 +55,24 @@ func (w webhookRoute) new(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": webhook.ID()})
+	c.JSON(http.StatusCreated, gin.H{"id": webhook.ID().String()})
 }
 
-func (w webhookRoute) find(c *gin.Context) {
-	// webhooks, err := form.do(&w)
-	// if err != nil {
-	// 	w.Logger.Error("New", "error", err, "form", form)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
+func (w webhookRoute) findOne(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	webhook, err := w.find(webhook.WebhookID(id))
+	if err != nil {
+		w.Logger.Error("New", "error", err, "id", id.String())
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 
-	// c.JSON(http.StatusCreated, gin.H{"id": webhook.ID()})
+	c.JSON(http.StatusOK, webhookJson{
+		ID: webhook.ID().String(),
+		// Endpoint: webhook.Endpoint(),
+	})
 }
