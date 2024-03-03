@@ -54,6 +54,18 @@ func FromBlueprint(bp Blueprint, defaults ...Option) (*Webhook, error) {
 	return &wh, nil
 }
 
+// IntoBlueprint returns a Blueprint that is reconstructable this Webhook.
+func (w Webhook) IntoBlueprint() Blueprint {
+	return Blueprint{
+		ID:          uuid.UUID(w.ID()).String(),
+		Endpoint:    w.endpoint,
+		Method:      w.method,
+		Auth:        w.header.Get("Authorization"),
+		Schema:      w.schema.Tree.Root.String(),
+		ContentType: w.header.Get("Content-Type"),
+	}
+}
+
 func (e Webhook) ID() WebhookID {
 	return e.id
 }

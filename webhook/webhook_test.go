@@ -81,3 +81,19 @@ func Test_Blueprint(t *testing.T) {
 	req.Body.Read(buf)
 	assert.Equal(t, `{"msg":"hello"}`, string(buf))
 }
+
+func Test_IntoBlueprint(t *testing.T) {
+	bp := Blueprint{
+		ID:          "ece24b02-c98f-46b2-993f-a0860cd116cd",
+		Endpoint:    "http://example.local",
+		Method:      "POST",
+		Schema:      `{"msg":"{{.Text}}"}`,
+		ContentType: "application/json",
+		Auth:        "sercret",
+	}
+	wh, err := FromBlueprint(bp)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, bp, wh.IntoBlueprint())
+}
