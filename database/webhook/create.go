@@ -26,6 +26,23 @@ func (c Create) persist(table webhookTable) (*webhook.Webhook, error) {
 	return hook, nil
 }
 
+// FromBlueprint creates and persist a Webhook from the Blueprint.
+func (c Create) FromBlueprint(bp webhook.Blueprint) (*webhook.Webhook, error) {
+	wh, err := webhook.FromBlueprint(bp)
+	if err != nil {
+		return nil, err
+	}
+	table := webhookTable{
+		ID:          uuid.UUID(wh.ID()),
+		Endpoint:    bp.Endpoint,
+		Auth:        bp.Auth,
+		Schema:      bp.Schema,
+		Method:      bp.Method,
+		ContentType: bp.ContentType,
+	}
+	return c.persist(table)
+}
+
 // ForGet creates and persist a Webhook to send a GET request.
 func (c Create) ForGet(endpoint string, auth string) (*webhook.Webhook, error) {
 	table := webhookTable{
