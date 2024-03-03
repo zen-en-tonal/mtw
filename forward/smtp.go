@@ -21,5 +21,5 @@ func NewSmtp(host string, auth smtp.Auth, recp ...string) Forwarder {
 }
 
 func (f Forwarder) Send(t session.Transaction) error {
-	return smtp.SendMail(f.host, f.auth, t.From(), f.recipients, t.Raw())
+	return smtp.SendMail(f.host+":587", f.auth, t.From(), f.recipients, t.Raw())
 }
