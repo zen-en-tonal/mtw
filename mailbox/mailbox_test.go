@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/zen-en-tonal/mtw/session"
 )
 
@@ -51,6 +52,21 @@ func Test_FilterSet(t *testing.T) {
 		t.Error(err)
 	}
 	if err := session.Commit(); err != nil {
+		t.Error(err)
+	}
+}
+
+func Test_NewAddr(t *testing.T) {
+	addr, err := NewAddr("alice", "localhost.lan")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "alice@localhost.lan", addr.String())
+}
+
+func Test_NewRandomAddr(t *testing.T) {
+	_, err := RandomAddr("localhost.lan")
+	if err != nil {
 		t.Error(err)
 	}
 }
