@@ -1,6 +1,7 @@
 package session
 
 import (
+	"bytes"
 	"io"
 	"log/slog"
 	"net/mail"
@@ -186,11 +187,13 @@ type Transaction struct {
 	sender   mail.Address
 	rcpt     mail.Address
 	envelope enmime.Envelope
-	raw      io.Reader
+	raw      []byte
 }
 
 func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body io.Reader) (*Transaction, error) {
-	env, err := enmime.ReadEnvelope(body)
+	var buf bytes.Buffer
+	tee := io.TeeReader(body, &buf)
+	env, err := enmime.ReadEnvelope(tee)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +202,7 @@ func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body i
 		sender:   sender,
 		rcpt:     rcpt,
 		envelope: *env,
-		raw:      body,
+		raw:      buf.Bytes(),
 	}, nil
 }
 
@@ -229,6 +232,10 @@ func (t Transaction) Text() string {
 
 func (t Transaction) From() string {
 	return t.envelope.GetHeader("From")
+}
+
+func (t Transaction) Raw() []byte {
+	return t.raw
 }
 
 func (t Transaction) To() string {
