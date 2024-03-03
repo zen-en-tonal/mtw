@@ -12,7 +12,7 @@ func TryAll[T any](arg T, funcs ...func(T) error) error {
 	wg.Add(len(funcs))
 
 	wc := make(chan struct{})
-	ec := make(chan error, 1)
+	ec := make(chan error, len(funcs))
 	go func() {
 		for _, f := range funcs {
 			go func(wg *sync.WaitGroup) {
@@ -22,12 +22,12 @@ func TryAll[T any](arg T, funcs ...func(T) error) error {
 				}
 				if err := f(arg); err != nil {
 					ec <- err
-					close(ec)
 				}
 			}(&wg)
 		}
 		wg.Wait()
 		close(wc)
+		close(ec)
 	}()
 
 	select {
