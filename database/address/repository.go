@@ -18,30 +18,30 @@ func newRepository(db *sql.DB) addressRepository {
 
 func (r addressRepository) insert(addr addressTable) error {
 	_, err := r.conn.Exec(
-		`INSERT INTO addresses VALUES ($1)`,
-		addr.address,
+		`INSERT INTO addresses (address) VALUES ($1)`,
+		addr.Address,
 	)
 	return err
 }
 
 func (r addressRepository) all() (*[]addressTable, error) {
 	var tables []addressTable
-	if err := r.conn.Select(&tables, `SELECT * FROM addresses`); err != nil {
+	if err := r.conn.Select(&tables, `SELECT address FROM addresses`); err != nil {
 		return nil, err
 	}
 	return &tables, nil
 }
 
 func (r addressRepository) findOne(addr string) (*addressTable, error) {
-	var table *addressTable
+	var tables []addressTable
 	if err := r.conn.Select(
-		&table,
-		`SELECT * FROM addresses FROM address = $1`,
+		&tables,
+		`SELECT address FROM addresses WHERE address = $1`,
 		addr); err != nil {
 		return nil, err
 	}
-	if table != nil {
+	if len(tables) == 0 {
 		return nil, fmt.Errorf("addr %s not found", addr)
 	}
-	return table, nil
+	return &tables[0], nil
 }

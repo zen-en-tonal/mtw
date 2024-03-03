@@ -42,7 +42,7 @@ func (f Find) ByID(id webhook.WebhookID) (*webhook.Webhook, error) {
 		return nil, err
 	}
 	hook, err := table.into()
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 	return hook, nil

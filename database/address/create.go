@@ -36,7 +36,7 @@ func (c CreateHandle) WithRandom() (*mailbox.Address, error) {
 
 func (c CreateHandle) create(addr mailbox.Address) (*mailbox.Address, error) {
 	table := addressTable{
-		address: addr.String(),
+		Address: addr.String(),
 	}
 	if err := c.insert(table); err != nil {
 		return nil, err

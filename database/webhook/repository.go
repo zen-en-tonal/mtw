@@ -21,7 +21,7 @@ func newRepository(db *sql.DB) webhookRepository {
 func (r webhookRepository) upsert(table webhookTable) error {
 	_, err := r.conn.Exec(`
 		INSERT INTO webhooks VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (id)
+		ON CONFLICT ON CONSTRAINT webhooks_pk
 		DO
 		UPDATE SET
 			endpoint = $2
@@ -41,8 +41,8 @@ func (r webhookRepository) upsert(table webhookTable) error {
 }
 
 func (r webhookRepository) findOne(id webhook.WebhookID) (*webhookTable, error) {
-	table := new(webhookTable)
-	if err := r.conn.Select(&table, `
+	var tables []webhookTable
+	if err := r.conn.Select(&tables, `
 		SELECT
 			webhooks.*
 		FROM
@@ -50,13 +50,14 @@ func (r webhookRepository) findOne(id webhook.WebhookID) (*webhookTable, error) 
 		WHERE
 			id = $1
 		`,
-		id); err != nil {
+		id.String()); err != nil {
 		return nil, err
 	}
-	if table == nil {
-		return nil, errors.New("")
+	if len(tables) == 0 {
+		return nil, errors.New("not found")
 	}
-	return table, nil
+	table := tables[0]
+	return &table, nil
 }
 
 func (r webhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, error) {
@@ -88,7 +89,7 @@ func (r *webhookRepository) insertAddressWebhook(addr mailbox.Address, webhookID
 		, 	$2
 		)`,
 		addr.String(),
-		webhookID)
+		webhookID.String())
 	return err
 }
 
@@ -100,6 +101,6 @@ func (r *webhookRepository) deleteAddressWebhook(addr mailbox.Address, webhookID
 		AND webhook_id = $2
 		`,
 		addr.String(),
-		webhookID)
+		webhookID.String())
 	return err
 }
