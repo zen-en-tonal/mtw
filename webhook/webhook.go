@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/zen-en-tonal/mtw/session"
@@ -18,43 +16,6 @@ const (
 )
 
 type Option func(*Webhook)
-
-func WithPost(scheme template.Template, contentType string) Option {
-	return func(w *Webhook) {
-		w.header.Set("Content-Type", contentType)
-		w.method = "POST"
-		w.schema = &scheme
-	}
-}
-
-func WithAuth(token string) Option {
-	return func(w *Webhook) {
-		w.header.Set("Authorization", token)
-	}
-}
-
-func WithTimeout(d time.Duration) Option {
-	return func(w *Webhook) {
-		w.Timeout = d
-	}
-}
-
-func WithID(id uuid.UUID) Option {
-	return func(w *Webhook) {
-		w.id = WebhookID(id)
-	}
-}
-
-func WithDefault() Option {
-	return func(w *Webhook) {
-		w.id = WebhookID(uuid.New())
-		w.header = http.Header{}
-		w.method = "GET"
-		w.Timeout = time.Second * 10
-		w.schema = nil
-		w.logger = slog.Default()
-	}
-}
 
 type Logger interface {
 	Error(msg string, args ...any)
@@ -79,6 +40,18 @@ func New(endpoint string, options ...Option) Webhook {
 		opt(&w)
 	}
 	return w
+}
+
+func FromBlueprint(bp Blueprint, defaults ...Option) (*Webhook, error) {
+	options, err := bp.options(defaults...)
+	if err != nil {
+		return nil, err
+	}
+	if bp.Endpoint == "" {
+		return nil, fmt.Errorf("")
+	}
+	wh := New(bp.Endpoint, *options...)
+	return &wh, nil
 }
 
 func (e Webhook) ID() WebhookID {

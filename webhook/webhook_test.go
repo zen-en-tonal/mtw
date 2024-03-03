@@ -57,3 +57,27 @@ func TestGet(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func Test_Blueprint(t *testing.T) {
+	bp := Blueprint{
+		Endpoint:    "http://example.local",
+		Method:      "POST",
+		Schema:      `{"msg":"{{.Text}}"}`,
+		ContentType: "application/json",
+	}
+	wh, err := FromBlueprint(bp)
+	if err != nil {
+		t.Error(err)
+	}
+	req, err := wh.PrepareRequest(testTransaction())
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, "http://example.local", req.URL.String())
+	assert.Equal(t, "POST", req.Method)
+	assert.Equal(t, "application/json", req.Header.Get("content-type"))
+	buf := make([]byte, req.ContentLength)
+	req.Body.Read(buf)
+	assert.Equal(t, `{"msg":"hello"}`, string(buf))
+}
