@@ -61,12 +61,16 @@ func FromBlueprint(bp Blueprint, defaults ...Option) (*Webhook, error) {
 
 // IntoBlueprint returns a Blueprint that is reconstructable this Webhook.
 func (w Webhook) IntoBlueprint() Blueprint {
+	schema := ""
+	if w.schema != nil {
+		schema = w.schema.Tree.Root.String()
+	}
 	return Blueprint{
 		ID:          uuid.UUID(w.ID()).String(),
 		Endpoint:    w.endpoint,
 		Method:      w.method,
 		Auth:        w.header.Get("Authorization"),
-		Schema:      w.schema.Tree.Root.String(),
+		Schema:      schema,
 		ContentType: w.header.Get("Content-Type"),
 	}
 }
