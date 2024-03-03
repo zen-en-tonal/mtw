@@ -13,6 +13,10 @@ type HookSet interface {
 
 type hookSet struct{ HookSet }
 
+func AsHook(h HookSet) hookSet {
+	return hookSet{h}
+}
+
 func (h hookSet) Send(trans session.Transaction) error {
 	addr, err := ParseAddr(trans.To())
 	if err != nil {

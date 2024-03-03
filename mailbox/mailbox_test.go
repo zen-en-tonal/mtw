@@ -39,7 +39,7 @@ func (s nullFilterSet) FindFilters(addr Address) ([]session.Filter, error) {
 
 func Test_FilterSet(t *testing.T) {
 	mb := New(
-		WithFilterSet(nullFilterSet{}),
+		session.WithFilters(AsFilter(nullFilterSet{})),
 	)
 	session := mb.NewSession()
 	if err := session.SetMail("alice<alice@mail.com>"); err != nil {

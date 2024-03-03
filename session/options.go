@@ -1,5 +1,7 @@
 package session
 
+import "time"
+
 // WithFilters sets one or more filters into Session.
 // Each filters execute asynchronously.
 // Returns an error immediately if execution of at least one function fails.
@@ -30,5 +32,11 @@ func WithHooksSome(xs ...Hook) Option {
 func WithLogger(logger Logger) Option {
 	return func(s *Session) {
 		s.logger = logger
+	}
+}
+
+func WithTimeout(d time.Duration) Option {
+	return func(s *Session) {
+		s.timeout = d
 	}
 }

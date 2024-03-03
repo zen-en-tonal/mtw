@@ -13,6 +13,10 @@ type FilterSet interface {
 
 type filterSet struct{ FilterSet }
 
+func AsFilter(f FilterSet) filterSet {
+	return filterSet{f}
+}
+
 func (f filterSet) Validate(trans session.Transaction) error {
 	addr, err := ParseAddr(trans.To())
 	if err != nil {

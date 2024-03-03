@@ -2,9 +2,11 @@ package session
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/mail"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jhillyerd/enmime"
@@ -86,16 +88,19 @@ type Session struct {
 	sender *mail.Address
 	rcpt   *mail.Address
 	data   io.Reader
+
+	timeout time.Duration
 }
 
 type Option func(*Session)
 
 func New(options ...Option) Session {
 	s := Session{
-		Filter: nullFilter{},
-		Hook:   nullHook{},
-		id:     uuid.New(),
-		logger: slog.Default(),
+		Filter:  nullFilter{},
+		Hook:    nullHook{},
+		id:      uuid.New(),
+		logger:  slog.Default(),
+		timeout: time.Second * 10,
 	}
 	for _, opt := range options {
 		opt(&s)
@@ -152,21 +157,33 @@ func (s Session) Commit() error {
 	if err != nil {
 		return err
 	}
-	if err := s.Validate(*trans); err != nil {
-		s.logger.Error(
-			"validation failure",
-			"reason", err,
-			"id", trans.ID.String(),
-			"sender", trans.SenderAddress(),
-			"rcpt", trans.RcptAddress(),
-			"from", trans.From(),
-			"to", trans.To(),
-			"subject", trans.Subject(),
-			"text", trans.Text(),
-		)
+
+	ec := make(chan error, 1)
+	go func() {
+		defer close(ec)
+		if err := s.Validate(*trans); err != nil {
+			s.logger.Error(
+				"validation failure",
+				"reason", err,
+				"id", trans.ID.String(),
+				"sender", trans.SenderAddress(),
+				"rcpt", trans.RcptAddress(),
+				"from", trans.From(),
+				"to", trans.To(),
+				"subject", trans.Subject(),
+				"text", trans.Text(),
+			)
+			ec <- err
+		}
+		ec <- s.Send(*trans)
+	}()
+
+	select {
+	case err := <-ec:
 		return err
+	case <-time.After(s.timeout):
+		return fmt.Errorf("timeout")
 	}
-	return s.Send(*trans)
 }
 
 func (s Session) IntoTransaction() (*Transaction, error) {

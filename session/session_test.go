@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -54,6 +55,32 @@ func (f errFilter) Validate(t Transaction) error {
 func TestValidation(t *testing.T) {
 	session := New(
 		WithFilters(errFilter{}),
+	)
+	if err := session.SetMail("alice<alice@mail.com>"); err != nil {
+		t.Error(err)
+	}
+	if err := session.SetRcpt("bob<bob@mail.com>"); err != nil {
+		t.Error(err)
+	}
+	if err := session.SetData(createMail("<strong>hello</strong>")); err != nil {
+		t.Error(err)
+	}
+	if err := session.Commit(); err == nil {
+		t.Error("should fails")
+	}
+}
+
+type tooLongHook struct{}
+
+func (t tooLongHook) Send(_ Transaction) error {
+	time.Sleep(time.Second * 10)
+	return nil
+}
+
+func TestTimeout(t *testing.T) {
+	session := New(
+		WithHooksAll(tooLongHook{}),
+		WithTimeout(time.Second),
 	)
 	if err := session.SetMail("alice<alice@mail.com>"); err != nil {
 		t.Error(err)

@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"flag"
 	"log/slog"
+	"time"
 
 	"github.com/zen-en-tonal/mtw/database"
 	"github.com/zen-en-tonal/mtw/database/address"
 	"github.com/zen-en-tonal/mtw/database/webhook"
 	"github.com/zen-en-tonal/mtw/http"
 	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/smtp"
 	"github.com/zen-en-tonal/mtw/spam"
 )
@@ -42,12 +44,16 @@ func main() {
 	}
 
 	smtp := smtp.New(
-		smtp.WithMailboxOptions(
-			mailbox.WithFilters(
+		smtp.WithSessionOptions(
+			session.WithFilters(
 				spam.RcptMismatchFilter(),
 				address.Find(db),
 			),
-			mailbox.WithHookSet(webhook.NewFind(db)),
+			session.WithHooksSome(
+				mailbox.AsHook(webhook.NewFind(db)),
+			),
+			session.WithLogger(logger),
+			session.WithTimeout(time.Second*5),
 		),
 		smtp.WithLogger(logger),
 	)
