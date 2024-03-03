@@ -9,9 +9,8 @@ import (
 )
 
 type webhookService struct {
-	createForGet  func(endpoint string, auth string) (*webhook.Webhook, error)
-	createForPost func(endpoint string, schema string, contentType string, auth string) (*webhook.Webhook, error)
-	find          func(id webhook.WebhookID) (*webhook.Webhook, error)
+	create func(bp webhook.Blueprint) (*webhook.Webhook, error)
+	find   func(id webhook.WebhookID) (*webhook.Webhook, error)
 }
 
 type webhookRoute struct {
@@ -28,11 +27,14 @@ type webhookJson struct {
 	ContentType string `json:"content_type"`
 }
 
-func (f webhookJson) do(r *webhookRoute) (*webhook.Webhook, error) {
-	if f.Method == http.MethodPost {
-		return r.createForPost(f.Endpoint, f.Schema, f.ContentType, f.Auth)
-	} else {
-		return r.createForGet(f.Endpoint, f.Auth)
+func (f webhookJson) into() webhook.Blueprint {
+	return webhook.Blueprint{
+		ID:          f.ID,
+		Endpoint:    f.Endpoint,
+		Auth:        f.Auth,
+		Schema:      f.Schema,
+		Method:      f.Method,
+		ContentType: f.ContentType,
 	}
 }
 
@@ -48,7 +50,7 @@ func (w webhookRoute) new(c *gin.Context) {
 		return
 	}
 
-	webhook, err := form.do(&w)
+	webhook, err := w.create(form.into())
 	if err != nil {
 		w.Logger.Error("New", "error", err, "form", form)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -71,8 +73,13 @@ func (w webhookRoute) findOne(c *gin.Context) {
 		return
 	}
 
+	bp := webhook.IntoBlueprint()
 	c.JSON(http.StatusOK, webhookJson{
-		ID: webhook.ID().String(),
-		// Endpoint: webhook.Endpoint(),
+		ID:          bp.ID,
+		Endpoint:    bp.Endpoint,
+		Auth:        bp.Auth,
+		Schema:      bp.Schema,
+		Method:      bp.Method,
+		ContentType: bp.ContentType,
 	})
 }

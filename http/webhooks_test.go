@@ -20,13 +20,11 @@ func newWebhooksRoute(s webhookService) webhookRoute {
 	}
 }
 
-func Test_POST_Webhook_ForGet(t *testing.T) {
-	id := uuid.MustParse("271be94b-36d1-802e-d200-c1e0b85580b2")
+func Test_POST_Webhook(t *testing.T) {
 	router := gin.Default()
 	newWebhooksRoute(webhookService{
-		createForGet: func(endpoint, auth string) (*webhook.Webhook, error) {
-			w := webhook.New(endpoint, webhook.WithID(id))
-			return &w, nil
+		create: func(bp webhook.Blueprint) (*webhook.Webhook, error) {
+			return webhook.FromBlueprint(bp)
 		},
 	}).register(router)
 
@@ -34,29 +32,7 @@ func Test_POST_Webhook_ForGet(t *testing.T) {
 	req, _ := http.NewRequest(
 		"POST",
 		"/webhook",
-		strings.NewReader(`{"method":"GET","endpoint":"http://endpoint.com"}`),
-	)
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusCreated, w.Code)
-	assert.Equal(t, `{"id":"271be94b-36d1-802e-d200-c1e0b85580b2"}`, w.Body.String())
-}
-
-func Test_POST_Webhook_ForPost(t *testing.T) {
-	id := uuid.MustParse("271be94b-36d1-802e-d200-c1e0b85580b2")
-	router := gin.Default()
-	newWebhooksRoute(webhookService{
-		createForPost: func(endpoint, schema, contentType, auth string) (*webhook.Webhook, error) {
-			w := webhook.New(endpoint, webhook.WithID(id))
-			return &w, nil
-		},
-	}).register(router)
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(
-		"POST",
-		"/webhook",
-		strings.NewReader(`{"method":"POST","endpoint":"http://endpoint.com"}`),
+		strings.NewReader(`{"ID":"271be94b-36d1-802e-d200-c1e0b85580b2","method":"GET","endpoint":"http://endpoint.com"}`),
 	)
 	router.ServeHTTP(w, req)
 
@@ -83,5 +59,5 @@ func Test_GET_Webhook(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, `{"id":"271be94b-36d1-802e-d200-c1e0b85580b2"}`, w.Body.String())
+	assert.Equal(t, `{"id":"271be94b-36d1-802e-d200-c1e0b85580b2","endpoint":"http://endpoint.com","auth":"","schema":"","method":"GET","content_type":""}`, w.Body.String())
 }
