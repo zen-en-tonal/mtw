@@ -74,6 +74,7 @@ func (s *smtpSession) Rcpt(to string, opts *smtp.RcptOptions) error {
 
 func (s *smtpSession) Data(r io.Reader) error {
 	s.logger.Info("DATA", "session_id", s.inner.ID())
+	s.inner.SetData(r)
 	if err := s.inner.Commit(); err != nil {
 		s.logger.Error("DATA", "inner", err, "session_id", s.inner.ID())
 		return Err
