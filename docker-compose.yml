@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  mtw:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+      - 1025:25
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    healthcheck:
+      test: 'pg_isready -U "${POSTGRES_USER:-postgres}"'
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
