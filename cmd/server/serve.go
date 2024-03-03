@@ -9,6 +9,7 @@ import (
 
 	ns "net/smtp"
 
+	"github.com/gin-gonic/gin"
 	"github.com/zen-en-tonal/mtw/database"
 	"github.com/zen-en-tonal/mtw/database/address"
 	"github.com/zen-en-tonal/mtw/database/webhook"
@@ -29,6 +30,8 @@ var (
 	forwardTo string = ""
 
 	dbconn string = ""
+
+	secret string = ""
 )
 
 func init() {
@@ -38,6 +41,7 @@ func init() {
 	smtpHost, _ = os.LookupEnv("SMTP_HOST")
 	forwardTo, _ = os.LookupEnv("FORWARD_TO")
 	dbconn, _ = os.LookupEnv("DB_CONN")
+	secret, _ = os.LookupEnv("SECRET")
 }
 
 func main() {
@@ -50,6 +54,11 @@ func main() {
 	}
 	if err := database.Migrate(db); err != nil {
 		logger.Warn("migration failure", "inner", err.Error())
+	}
+
+	if secret == "" {
+		logger.Error("secret must be set")
+		return
 	}
 
 	auth := ns.PlainAuth("", smtpUser, smtpPass, smtpHost)
@@ -73,7 +82,7 @@ func main() {
 	smtp.Domain = domain
 	smtp.AllowInsecureAuth = false
 
-	rest := http.NewWithDB(db, domain, logger)
+	rest := http.NewWithDB(db, domain, logger, authMiddle)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -92,4 +101,13 @@ func main() {
 		cancel()
 	}(&ctx)
 	<-ctx.Done()
+}
+
+func authMiddle(c *gin.Context) {
+	if c.GetHeader("Authorization") != "Bearer "+secret {
+		c.Status(401)
+		c.Abort()
+	} else {
+		c.Next()
+	}
 }

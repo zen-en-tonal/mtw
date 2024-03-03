@@ -14,7 +14,7 @@ type Logger interface {
 	Error(msg string, args ...any)
 }
 
-func NewWithDB(db *sql.DB, domain string, logger Logger) *gin.Engine {
+func NewWithDB(db *sql.DB, domain string, logger Logger, middless ...gin.HandlerFunc) *gin.Engine {
 	addrRouter := addressRoute{
 		addressService{
 			create:       address.Create(db, domain).WithUser,
@@ -40,6 +40,7 @@ func NewWithDB(db *sql.DB, domain string, logger Logger) *gin.Engine {
 	}
 
 	router := gin.Default()
+	router.Use(middless...)
 	addrRouter.register(router)
 	webhookRouter.register(router)
 
