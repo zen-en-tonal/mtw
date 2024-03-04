@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"database/sql"
-	"errors"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zen-en-tonal/mtw/database"
@@ -54,7 +53,7 @@ func (r webhookRepository) findOne(id webhook.WebhookID) (*webhookTable, error) 
 		return nil, err
 	}
 	if len(tables) == 0 {
-		return nil, errors.New("not found")
+		return nil, database.ErrNotFound
 	}
 	table := tables[0]
 	return &table, nil

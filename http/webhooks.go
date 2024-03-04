@@ -1,10 +1,12 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/zen-en-tonal/mtw/database"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -69,6 +71,10 @@ func (w webhookRoute) findOne(c *gin.Context) {
 		return
 	}
 	webhook, err := w.find(webhook.WebhookID(id))
+	if errors.Is(err, database.ErrNotFound) {
+		c.JSON(http.StatusNotFound, nil)
+		return
+	}
 	if err != nil {
 		w.Logger.Error("New", "error", err, "id", id.String())
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})

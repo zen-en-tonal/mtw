@@ -2,7 +2,6 @@ package address
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zen-en-tonal/mtw/database"
@@ -41,7 +40,7 @@ func (r addressRepository) findOne(addr string) (*addressTable, error) {
 		return nil, err
 	}
 	if len(tables) == 0 {
-		return nil, fmt.Errorf("addr %s not found", addr)
+		return nil, database.ErrNotFound
 	}
 	return &tables[0], nil
 }
