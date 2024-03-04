@@ -1,14 +1,10 @@
-package mailbox
-
-import (
-	"github.com/zen-en-tonal/mtw/session"
-)
+package session
 
 // FilterSet represents a set of filters.
 type FilterSet interface {
 	// FindFilters returns an array of Filters or an error.
 	// If no Filters matched the key `addr`, returns an empty array.
-	FindFilters(addr Address) ([]session.Filter, error)
+	FindFilters(addr Address) ([]Filter, error)
 }
 
 type filterSet struct{ FilterSet }
@@ -17,7 +13,7 @@ func AsFilter(f FilterSet) filterSet {
 	return filterSet{f}
 }
 
-func (f filterSet) Validate(trans session.Transaction) error {
+func (f filterSet) Validate(trans Transaction) error {
 	addr, err := ParseAddr(trans.To())
 	if err != nil {
 		return err
@@ -26,5 +22,5 @@ func (f filterSet) Validate(trans session.Transaction) error {
 	if err != nil {
 		return err
 	}
-	return session.Filters(filters).Validate(trans)
+	return Filters(filters).Validate(trans)
 }

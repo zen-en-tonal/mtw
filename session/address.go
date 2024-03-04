@@ -1,4 +1,4 @@
-package mailbox
+package session
 
 import (
 	"fmt"

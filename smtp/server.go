@@ -6,7 +6,6 @@ import (
 	"log/slog"
 
 	"github.com/emersion/go-smtp"
-	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/session"
 )
 
@@ -18,8 +17,7 @@ var (
 // New returns a smtp server.
 func New(options ...Option) *smtp.Server {
 	backend := backend{
-		mailbox: mailbox.New(),
-		logger:  slog.Default(),
+		logger: slog.Default(),
 	}
 	for _, opt := range options {
 		opt(&backend)
@@ -35,12 +33,12 @@ type Logger interface {
 type Option func(*backend)
 
 type backend struct {
-	mailbox mailbox.Mailbox
 	logger  Logger
+	options []session.Option
 }
 
 func (b backend) NewSession(c *smtp.Conn) (smtp.Session, error) {
-	s := b.mailbox.NewSession()
+	s := session.New(b.options...)
 	return &smtpSession{s, b.logger}, nil
 }
 

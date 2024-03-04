@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zen-en-tonal/mtw/database/address"
 	"github.com/zen-en-tonal/mtw/database/webhook"
-	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	w "github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -21,10 +21,10 @@ func NewWithDB(db *sql.DB, domain string, logger Logger, middless ...gin.Handler
 			createRandom: address.Create(db, domain).WithRandom,
 			getAll:       address.Find(db).All,
 			getHooks:     webhook.NewFind(db).ByAddr,
-			createHook: func(addr mailbox.Address, id w.WebhookID) error {
+			createHook: func(addr session.Address, id w.WebhookID) error {
 				return webhook.NewRegistry(db, addr).Create(id)
 			},
-			removeHook: func(addr mailbox.Address, id w.WebhookID) error {
+			removeHook: func(addr session.Address, id w.WebhookID) error {
 				return webhook.NewRegistry(db, addr).Remove(id)
 			},
 		},
