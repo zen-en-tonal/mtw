@@ -125,3 +125,27 @@ func Test_TemplateFunction_Limit_NoEffects(t *testing.T) {
 	req.Body.Read(buf)
 	assert.Equal(t, `{"msg":"hello"}`, string(buf))
 }
+
+func Test_TemplateFunction_Escape(t *testing.T) {
+	bp := Blueprint{
+		Endpoint:    "http://example.local",
+		Method:      "POST",
+		Schema:      `{"msg":"{{Escape .Text | Limit 3}}"}`,
+		ContentType: "application/json",
+	}
+	wh, err := FromBlueprint(bp)
+	if err != nil {
+		t.Error(err)
+	}
+	req, err := wh.PrepareRequest(testTransaction())
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, "http://example.local", req.URL.String())
+	assert.Equal(t, "POST", req.Method)
+	assert.Equal(t, "application/json", req.Header.Get("content-type"))
+	buf := make([]byte, req.ContentLength)
+	req.Body.Read(buf)
+	assert.Equal(t, `{"msg":"hel"}`, string(buf))
+}

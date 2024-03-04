@@ -1,9 +1,11 @@
 package webhook
 
 import (
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,6 +25,9 @@ var tmplFuncs = map[string]interface{}{
 			text[i] = c
 		}
 		return string(text)
+	},
+	"Escape": func(s string) string {
+		return strings.ReplaceAll(fmt.Sprintf("%#v", s), "\"", "")
 	},
 }
 
