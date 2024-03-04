@@ -2,7 +2,6 @@ package session
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/mail"
@@ -33,8 +32,8 @@ type Filters []Filter
 func (f Filters) Validate(t Transaction) error {
 	f = append(f, nullFilter{})
 	fs := make([]func(Transaction) error, len(f))
-	for _, x := range f {
-		fs = append(fs, x.Validate)
+	for i, x := range f {
+		fs[i] = x.Validate
 	}
 	return sync.TryAll(t, fs...)
 }
@@ -182,7 +181,7 @@ func (s Session) Commit() error {
 	case err := <-ec:
 		return err
 	case <-time.After(s.timeout):
-		return fmt.Errorf("timeout")
+		return ErrTimeout
 	}
 }
 
