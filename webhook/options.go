@@ -61,6 +61,12 @@ func WithID(id uuid.UUID) Option {
 	}
 }
 
+func WithLogger(l Logger) Option {
+	return func(w *Webhook) {
+		w.logger = l
+	}
+}
+
 func WithDefault() Option {
 	return func(w *Webhook) {
 		w.id = WebhookID(uuid.New())

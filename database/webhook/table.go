@@ -15,7 +15,7 @@ type webhookTable struct {
 }
 
 // into converts a webhookTable into a Webhook.
-func (w webhookTable) into() (*webhook.Webhook, error) {
+func (w webhookTable) into(defaults ...webhook.Option) (*webhook.Webhook, error) {
 	bp := webhook.Blueprint{
 		ID:          w.ID.String(),
 		Endpoint:    w.Endpoint,
@@ -24,5 +24,5 @@ func (w webhookTable) into() (*webhook.Webhook, error) {
 		Method:      w.Method,
 		ContentType: w.ContentType,
 	}
-	return webhook.FromBlueprint(bp)
+	return webhook.FromBlueprint(bp, defaults...)
 }
