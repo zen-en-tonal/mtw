@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"log/slog"
-	"net/mail"
 	"time"
 
 	"github.com/google/uuid"
@@ -84,8 +83,8 @@ type Session struct {
 	logger Logger
 
 	id     uuid.UUID
-	sender *mail.Address
-	rcpt   *mail.Address
+	sender *Address
+	rcpt   *Address
 	data   io.Reader
 
 	timeout time.Duration
@@ -114,7 +113,7 @@ func (s Session) ID() uuid.UUID {
 
 // SetMail parse a sender address and sets it into the Session.
 func (s *Session) SetMail(addr string) error {
-	a, err := mail.ParseAddress(addr)
+	a, err := ParseAddr(addr)
 	if err != nil {
 		return err
 	}
@@ -124,7 +123,7 @@ func (s *Session) SetMail(addr string) error {
 
 // SetRcpt parse a recipient address and sets it into the Session.
 func (s *Session) SetRcpt(addr string) error {
-	a, err := mail.ParseAddress(addr)
+	a, err := ParseAddr(addr)
 	if err != nil {
 		return err
 	}
@@ -201,13 +200,13 @@ func (s Session) IntoTransaction() (*Transaction, error) {
 
 type Transaction struct {
 	ID       uuid.UUID
-	sender   mail.Address
-	rcpt     mail.Address
+	sender   Address
+	rcpt     Address
 	envelope enmime.Envelope
 	raw      []byte
 }
 
-func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body io.Reader) (*Transaction, error) {
+func NewTransaction(id uuid.UUID, sender Address, rcpt Address, body io.Reader) (*Transaction, error) {
 	var buf bytes.Buffer
 	tee := io.TeeReader(body, &buf)
 	env, err := enmime.ReadEnvelope(tee)
@@ -224,19 +223,19 @@ func NewTransaction(id uuid.UUID, sender mail.Address, rcpt mail.Address, body i
 }
 
 func (t Transaction) SenderName() string {
-	return t.sender.Name
+	return t.sender.Name()
 }
 
 func (t Transaction) SenderAddress() string {
-	return t.sender.Address
+	return t.sender.String()
 }
 
 func (t Transaction) RcptName() string {
-	return t.rcpt.Name
+	return t.rcpt.Name()
 }
 
 func (t Transaction) RcptAddress() string {
-	return t.rcpt.Address
+	return t.rcpt.String()
 }
 
 func (t Transaction) HTML() string {

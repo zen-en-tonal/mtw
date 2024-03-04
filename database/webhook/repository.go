@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zen-en-tonal/mtw/database"
-	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -67,7 +67,7 @@ func (r webhookRepository) findAll() (*[]webhookTable, error) {
 	return &tables, nil
 }
 
-func (r webhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, error) {
+func (r webhookRepository) findByAddr(addr session.Address) (*[]webhookTable, error) {
 	var tables []webhookTable
 	if err := r.conn.Select(&tables, `
 		SELECT
@@ -85,7 +85,7 @@ func (r webhookRepository) findByAddr(addr mailbox.Address) (*[]webhookTable, er
 	return &tables, nil
 }
 
-func (r *webhookRepository) insertAddressWebhook(addr mailbox.Address, webhookID webhook.WebhookID) error {
+func (r *webhookRepository) insertAddressWebhook(addr session.Address, webhookID webhook.WebhookID) error {
 	_, err := r.conn.Exec(`
 		INSERT INTO addresses_webhooks (
 			address
@@ -100,7 +100,7 @@ func (r *webhookRepository) insertAddressWebhook(addr mailbox.Address, webhookID
 	return err
 }
 
-func (r *webhookRepository) deleteAddressWebhook(addr mailbox.Address, webhookID webhook.WebhookID) error {
+func (r *webhookRepository) deleteAddressWebhook(addr session.Address, webhookID webhook.WebhookID) error {
 	_, err := r.conn.Exec(`
 		DELETE FROM addresses_webhooks
 		WHERE

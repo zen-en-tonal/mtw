@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"io"
-	"net/mail"
 	"strings"
 	"testing"
 
@@ -20,8 +19,8 @@ func testTransaction() session.Transaction {
 	m := createMail("hello")
 	t, err := session.NewTransaction(
 		uuid.New(),
-		mail.Address{Address: "alice@mail.com"},
-		mail.Address{Address: "bob@mail.com"},
+		session.MustParseAddr("alice@mail.com"),
+		session.MustParseAddr("bob@mail.com"),
 		m,
 	)
 	if err != nil {

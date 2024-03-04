@@ -3,7 +3,6 @@ package webhook
 import (
 	"database/sql"
 
-	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
@@ -19,7 +18,7 @@ func NewFind(db *sql.DB, defaults ...webhook.Option) Find {
 }
 
 // ByAddr returns Webhooks by Address.
-func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
+func (f Find) ByAddr(addr session.Address) (*[]webhook.Webhook, error) {
 	tables, err := f.findByAddr(addr)
 	if err != nil {
 		return nil, err
@@ -68,7 +67,7 @@ func (f Find) All() (*[]webhook.Webhook, error) {
 	return &hooks, nil
 }
 
-func (f Find) FindHooks(addr mailbox.Address) ([]session.Hook, error) {
+func (f Find) FindHooks(addr session.Address) ([]session.Hook, error) {
 	webhooks, err := f.ByAddr(addr)
 	if err != nil {
 		return nil, err

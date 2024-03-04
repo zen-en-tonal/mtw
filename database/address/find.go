@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/sync"
 )
@@ -19,12 +18,12 @@ func Find(db *sql.DB) FindHandle {
 }
 
 // All returns an array of Address.
-func (f FindHandle) All() (*[]mailbox.Address, error) {
+func (f FindHandle) All() (*[]session.Address, error) {
 	tables, err := f.all()
 	if err != nil {
 		return nil, err
 	}
-	addrs := make([]mailbox.Address, len(*tables))
+	addrs := make([]session.Address, len(*tables))
 	for i, table := range *tables {
 		addr, err := table.into()
 		if err != nil {
@@ -36,7 +35,7 @@ func (f FindHandle) All() (*[]mailbox.Address, error) {
 }
 
 // Exists returns the addr exists in the DB or not.
-func (f FindHandle) Exists(addr mailbox.Address) bool {
+func (f FindHandle) Exists(addr session.Address) bool {
 	if _, err := f.findOne(addr.String()); err != nil {
 		return false
 	}
@@ -47,7 +46,7 @@ func (f FindHandle) Validate(t session.Transaction) error {
 	validate := func(selector func(t session.Transaction) string) func(t session.Transaction) error {
 		return func(t session.Transaction) error {
 			maybeAddr := selector(t)
-			addr, err := mailbox.ParseAddr(maybeAddr)
+			addr, err := session.ParseAddr(maybeAddr)
 			if err != nil {
 				return err
 			}

@@ -15,7 +15,6 @@ import (
 	"github.com/zen-en-tonal/mtw/database/webhook"
 	"github.com/zen-en-tonal/mtw/forward"
 	"github.com/zen-en-tonal/mtw/http"
-	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/smtp"
 	wh "github.com/zen-en-tonal/mtw/webhook"
@@ -70,7 +69,7 @@ func main() {
 				address.Find(db),
 			),
 			session.WithHooksSome(
-				mailbox.AsHook(webhook.NewFind(db, wh.WithLogger(logger))),
+				session.AsHook(webhook.NewFind(db, wh.WithLogger(logger))),
 				forward.NewSmtp(smtpHost, auth, forwardTo),
 			),
 			session.WithLogger(logger),

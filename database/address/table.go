@@ -1,7 +1,7 @@
 package address
 
 import (
-	"github.com/zen-en-tonal/mtw/mailbox"
+	mailbox "github.com/zen-en-tonal/mtw/session"
 )
 
 type addressTable struct {

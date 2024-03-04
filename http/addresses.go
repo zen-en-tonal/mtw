@@ -5,17 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
 type addressService struct {
-	create       func(user string) (*mailbox.Address, error)
-	createRandom func() (*mailbox.Address, error)
-	getAll       func() (*[]mailbox.Address, error)
-	getHooks     func(addr mailbox.Address) (*[]webhook.Webhook, error)
-	createHook   func(addr mailbox.Address, id webhook.WebhookID) error
-	removeHook   func(addr mailbox.Address, id webhook.WebhookID) error
+	create       func(user string) (*session.Address, error)
+	createRandom func() (*session.Address, error)
+	getAll       func() (*[]session.Address, error)
+	getHooks     func(addr session.Address) (*[]webhook.Webhook, error)
+	createHook   func(addr session.Address, id webhook.WebhookID) error
+	removeHook   func(addr session.Address, id webhook.WebhookID) error
 }
 
 type addressRoute struct {
@@ -68,7 +68,7 @@ func (a addressRoute) all(c *gin.Context) {
 }
 
 func (a addressRoute) hooks(c *gin.Context) {
-	addr, err := mailbox.ParseAddr(c.Param("addr"))
+	addr, err := session.ParseAddr(c.Param("addr"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -89,7 +89,7 @@ func (a addressRoute) hooks(c *gin.Context) {
 }
 
 func (r addressRoute) newHook(c *gin.Context) {
-	addr, err := mailbox.ParseAddr(c.Param("addr"))
+	addr, err := session.ParseAddr(c.Param("addr"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -107,7 +107,7 @@ func (r addressRoute) newHook(c *gin.Context) {
 }
 
 func (r addressRoute) deleteHook(c *gin.Context) {
-	addr, err := mailbox.ParseAddr(c.Param("addr"))
+	addr, err := session.ParseAddr(c.Param("addr"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

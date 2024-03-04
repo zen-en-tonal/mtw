@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -24,9 +24,9 @@ func newAddrRoute(addr addressService) addressRoute {
 func TestGetAddresses(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		getAll: func() (*[]mailbox.Address, error) {
-			return &[]mailbox.Address{
-				mailbox.MustParseAddr("alice@mail.com"),
+		getAll: func() (*[]session.Address, error) {
+			return &[]session.Address{
+				session.MustParseAddr("alice@mail.com"),
 			}, nil
 		},
 	}).register(router)
@@ -42,7 +42,7 @@ func TestGetAddresses(t *testing.T) {
 func TestGetAddresses_Error(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		getAll: func() (*[]mailbox.Address, error) {
+		getAll: func() (*[]session.Address, error) {
 			return nil, errors.New("err")
 		},
 	}).register(router)
@@ -58,8 +58,8 @@ func TestGetAddresses_Error(t *testing.T) {
 func TestNewAddress(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		create: func(user string) (*mailbox.Address, error) {
-			return mailbox.NewAddr(user, "mail.com")
+		create: func(user string) (*session.Address, error) {
+			return session.NewAddr(user, "mail.com")
 		},
 	}).register(router)
 
@@ -78,8 +78,8 @@ func TestNewAddress(t *testing.T) {
 func TestNewRandom(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		createRandom: func() (*mailbox.Address, error) {
-			return mailbox.NewAddr("alice", "mail.com")
+		createRandom: func() (*session.Address, error) {
+			return session.NewAddr("alice", "mail.com")
 		},
 	}).register(router)
 
@@ -101,7 +101,7 @@ func TestHooks(t *testing.T) {
 		"271be94b-36d1-802e-d200-c1e0b85580b2",
 	)))
 	newAddrRoute(addressService{
-		getHooks: func(addr mailbox.Address) (*[]webhook.Webhook, error) {
+		getHooks: func(addr session.Address) (*[]webhook.Webhook, error) {
 			return &[]webhook.Webhook{wh}, nil
 		},
 	}).register(router)
@@ -136,7 +136,7 @@ func TestHooks_BadRequest(t *testing.T) {
 func Test_POST_Hook(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		createHook: func(addr mailbox.Address, id webhook.WebhookID) error {
+		createHook: func(addr session.Address, id webhook.WebhookID) error {
 			return nil
 		},
 	}).register(router)
@@ -155,7 +155,7 @@ func Test_POST_Hook(t *testing.T) {
 func Test_POST_Hook_BadAddress(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		createHook: func(addr mailbox.Address, id webhook.WebhookID) error {
+		createHook: func(addr session.Address, id webhook.WebhookID) error {
 			return nil
 		},
 	}).register(router)
@@ -174,7 +174,7 @@ func Test_POST_Hook_BadAddress(t *testing.T) {
 func Test_POST_Hook_BadHookID(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		createHook: func(addr mailbox.Address, id webhook.WebhookID) error {
+		createHook: func(addr session.Address, id webhook.WebhookID) error {
 			return nil
 		},
 	}).register(router)
@@ -193,7 +193,7 @@ func Test_POST_Hook_BadHookID(t *testing.T) {
 func Test_DELETE_Hook(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		removeHook: func(addr mailbox.Address, id webhook.WebhookID) error {
+		removeHook: func(addr session.Address, id webhook.WebhookID) error {
 			return nil
 		},
 	}).register(router)
@@ -212,7 +212,7 @@ func Test_DELETE_Hook(t *testing.T) {
 func Test_DELETE_Hook_BadAddress(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		removeHook: func(addr mailbox.Address, id webhook.WebhookID) error {
+		removeHook: func(addr session.Address, id webhook.WebhookID) error {
 			return nil
 		},
 	}).register(router)
@@ -231,7 +231,7 @@ func Test_DELETE_Hook_BadAddress(t *testing.T) {
 func Test_DELETE_Hook_BadHookID(t *testing.T) {
 	router := gin.Default()
 	newAddrRoute(addressService{
-		removeHook: func(addr mailbox.Address, id webhook.WebhookID) error {
+		removeHook: func(addr session.Address, id webhook.WebhookID) error {
 			return nil
 		},
 	}).register(router)

@@ -3,17 +3,17 @@ package webhook
 import (
 	"database/sql"
 
-	"github.com/zen-en-tonal/mtw/mailbox"
+	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
 type Registry struct {
 	webhookRepository
-	mailbox.Address
+	session.Address
 }
 
 // NewRegistry returns a handle to register a Webhook to the Address.
-func NewRegistry(db *sql.DB, addr mailbox.Address) Registry {
+func NewRegistry(db *sql.DB, addr session.Address) Registry {
 	return Registry{newRepository(db), addr}
 }
 
