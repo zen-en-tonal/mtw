@@ -1,8 +1,6 @@
 package webhook
 
 import (
-	"html/template"
-
 	"github.com/google/uuid"
 )
 
@@ -29,11 +27,11 @@ func (b Blueprint) options(defaults ...Option) (*[]Option, error) {
 	}
 
 	if b.Schema != "" {
-		tmpl, err := template.New("").Parse(b.Schema)
+		opt, err := WithSchema(b.Schema, b.ContentType)
 		if err != nil {
 			return nil, err
 		}
-		options = append(options, WithSchema(*tmpl, b.ContentType))
+		options = append(options, opt)
 	}
 
 	if b.Auth != "" {

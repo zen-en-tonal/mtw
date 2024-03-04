@@ -1,7 +1,6 @@
 package webhook
 
 import (
-	"html/template"
 	"io"
 	"net/mail"
 	"strings"
@@ -29,25 +28,6 @@ func testTransaction() session.Transaction {
 		panic(err)
 	}
 	return *t
-}
-
-func TestTemplate(t *testing.T) {
-	tmp := "sender: {{.SenderAddress}}, rcpt: {{.RcptAddress}}, subject: {{.Subject}}, text: {{.Text}}"
-	tmpl, err := template.New("").Parse(tmp)
-	if err != nil {
-		t.Error(err)
-	}
-
-	wh := New("http://example.local", WithPost(*tmpl, ContentTypeJson))
-	req, err := wh.PrepareRequest(testTransaction())
-	if err != nil {
-		t.Error(err)
-	}
-
-	buf := make([]byte, req.ContentLength)
-	req.Body.Read(buf)
-
-	assert.Equal(t, "sender: alice@mail.com, rcpt: bob@mail.com, subject: Subject, text: hello", string(buf))
 }
 
 func TestGet(t *testing.T) {
@@ -96,4 +76,52 @@ func Test_IntoBlueprint(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, bp, wh.IntoBlueprint())
+}
+
+func Test_TemplateFunction_Limit(t *testing.T) {
+	bp := Blueprint{
+		Endpoint:    "http://example.local",
+		Method:      "POST",
+		Schema:      `{"msg":"{{Limit 1 .Text}}"}`,
+		ContentType: "application/json",
+	}
+	wh, err := FromBlueprint(bp)
+	if err != nil {
+		t.Error(err)
+	}
+	req, err := wh.PrepareRequest(testTransaction())
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, "http://example.local", req.URL.String())
+	assert.Equal(t, "POST", req.Method)
+	assert.Equal(t, "application/json", req.Header.Get("content-type"))
+	buf := make([]byte, req.ContentLength)
+	req.Body.Read(buf)
+	assert.Equal(t, `{"msg":"h"}`, string(buf))
+}
+
+func Test_TemplateFunction_Limit_NoEffects(t *testing.T) {
+	bp := Blueprint{
+		Endpoint:    "http://example.local",
+		Method:      "POST",
+		Schema:      `{"msg":"{{Limit 1000 .Text}}"}`,
+		ContentType: "application/json",
+	}
+	wh, err := FromBlueprint(bp)
+	if err != nil {
+		t.Error(err)
+	}
+	req, err := wh.PrepareRequest(testTransaction())
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.Equal(t, "http://example.local", req.URL.String())
+	assert.Equal(t, "POST", req.Method)
+	assert.Equal(t, "application/json", req.Header.Get("content-type"))
+	buf := make([]byte, req.ContentLength)
+	req.Body.Read(buf)
+	assert.Equal(t, `{"msg":"hello"}`, string(buf))
 }

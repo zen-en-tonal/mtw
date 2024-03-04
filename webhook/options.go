@@ -9,12 +9,21 @@ import (
 	"github.com/google/uuid"
 )
 
-func WithPost(scheme template.Template, contentType string) Option {
-	return func(w *Webhook) {
-		w.header.Set("Content-Type", contentType)
-		w.method = "POST"
-		w.schema = &scheme
-	}
+var tmplFuncs = map[string]interface{}{
+	"Limit": func(max int, s string) string {
+		runes := []rune(s)
+		if len(runes) <= max {
+			return s
+		}
+		text := make([]rune, max)
+		for i, c := range runes {
+			if i >= max {
+				return string(text)
+			}
+			text[i] = c
+		}
+		return string(text)
+	},
 }
 
 func WithMethod(method string) Option {
@@ -23,11 +32,15 @@ func WithMethod(method string) Option {
 	}
 }
 
-func WithSchema(schema template.Template, contentType string) Option {
+func WithSchema(schema string, contentType string) (Option, error) {
+	s, err := template.New("").Funcs(tmplFuncs).Parse(schema)
+	if err != nil {
+		return nil, err
+	}
 	return func(w *Webhook) {
 		w.header.Set("Content-Type", contentType)
-		w.schema = &schema
-	}
+		w.schema = s
+	}, nil
 }
 
 func WithAuth(token string) Option {
