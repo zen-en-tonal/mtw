@@ -52,7 +52,11 @@ func (f FindHandle) Validate(t session.Transaction) error {
 				return err
 			}
 			if !f.Exists(*addr) {
-				return fmt.Errorf("addr %s is not found", addr.String())
+				return fmt.Errorf(
+					"addr %s is not found: %w",
+					addr.String(),
+					session.ErrValidation,
+				)
 			}
 			return nil
 		}
