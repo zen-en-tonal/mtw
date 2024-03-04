@@ -8,11 +8,14 @@ import (
 	"github.com/zen-en-tonal/mtw/webhook"
 )
 
-type Find struct{ webhookRepository }
+type Find struct {
+	webhookRepository
+	options []webhook.Option
+}
 
 // NewFind returns a handle to get Webhooks.
-func NewFind(db *sql.DB) Find {
-	return Find{newRepository(db)}
+func NewFind(db *sql.DB, defaults ...webhook.Option) Find {
+	return Find{newRepository(db), defaults}
 }
 
 // ByAddr returns Webhooks by Address.
@@ -23,7 +26,7 @@ func (f Find) ByAddr(addr mailbox.Address) (*[]webhook.Webhook, error) {
 	}
 	hooks := make([]webhook.Webhook, len(*tables))
 	for i, table := range *tables {
-		hook, err := table.into()
+		hook, err := table.into(f.options...)
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +44,7 @@ func (f Find) ByID(id webhook.WebhookID) (*webhook.Webhook, error) {
 	if err != nil {
 		return nil, err
 	}
-	hook, err := table.into()
+	hook, err := table.into(f.options...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +59,7 @@ func (f Find) All() (*[]webhook.Webhook, error) {
 	}
 	hooks := make([]webhook.Webhook, len(*tables))
 	for i, table := range *tables {
-		hook, err := table.into()
+		hook, err := table.into(f.options...)
 		if err != nil {
 			return nil, err
 		}

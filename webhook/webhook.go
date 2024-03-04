@@ -18,6 +18,7 @@ const (
 type Option func(*Webhook)
 
 type Logger interface {
+	Info(msg string, args ...any)
 	Error(msg string, args ...any)
 }
 
@@ -102,6 +103,14 @@ func (w Webhook) Send(t session.Transaction) error {
 			resp.Status,
 		)
 	}
+	w.logger.Info(
+		"sent an http request with successed",
+		"ID", t.ID.String(),
+		"Endpoint", resp.Request.URL.String(),
+		"Method", resp.Request.Method,
+		"StatusCode", resp.StatusCode,
+		"Status", resp.Status,
+	)
 	return nil
 }
 
