@@ -32,4 +32,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: zenentonal/mw:${{ github.ref_name }}
+          tags: zenentonal/mtw:${{ github.ref_name }}
