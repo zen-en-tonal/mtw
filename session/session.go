@@ -173,6 +173,7 @@ func (s Session) Commit() error {
 				"text", trans.Text(),
 			)
 			ec <- err
+			return
 		}
 		ec <- s.Send(*trans)
 	}()

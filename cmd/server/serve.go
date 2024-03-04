@@ -18,7 +18,6 @@ import (
 	"github.com/zen-en-tonal/mtw/mailbox"
 	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/smtp"
-	"github.com/zen-en-tonal/mtw/spam"
 	wh "github.com/zen-en-tonal/mtw/webhook"
 )
 
@@ -67,7 +66,7 @@ func main() {
 	smtp := smtp.New(
 		smtp.WithSessionOptions(
 			session.WithFilters(
-				spam.RcptMismatchFilter(),
+				// spam.RcptMismatchFilter(),
 				address.Find(db),
 			),
 			session.WithHooksSome(
