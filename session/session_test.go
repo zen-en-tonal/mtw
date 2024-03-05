@@ -27,7 +27,7 @@ func (h *spyHook) Send(t Transaction) error {
 func TestOk(t *testing.T) {
 	spy := spyHook{}
 	session := New(
-		WithHooksAll(&spy),
+		AppendHooks(&spy),
 	)
 	if err := session.SetMail("alice<alice@mail.com>"); err != nil {
 		t.Error(err)
@@ -54,7 +54,7 @@ func (f errFilter) Validate(t Transaction) error {
 
 func TestValidation(t *testing.T) {
 	session := New(
-		WithFilters(errFilter{}),
+		AppendFilters(errFilter{}),
 	)
 	if err := session.SetMail("alice<alice@mail.com>"); err != nil {
 		t.Error(err)
@@ -79,7 +79,7 @@ func (t tooLongHook) Send(_ Transaction) error {
 
 func TestTimeout(t *testing.T) {
 	session := New(
-		WithHooksAll(tooLongHook{}),
+		AppendHooks(tooLongHook{}),
 		WithTimeout(time.Second),
 	)
 	if err := session.SetMail("alice<alice@mail.com>"); err != nil {

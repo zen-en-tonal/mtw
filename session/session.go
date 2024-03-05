@@ -11,6 +11,10 @@ import (
 	"github.com/zen-en-tonal/mtw/sync"
 )
 
+type FilterProvider interface {
+	GetFilters(t Transaction) (*[]Filter, error)
+}
+
 // Filter determains the mail should be recieved.
 type Filter interface {
 	// Validate validates a Transaction.
@@ -18,21 +22,24 @@ type Filter interface {
 	Validate(t Transaction) error
 }
 
-// nullFilter always returns nil on Validate.
-type nullFilter struct{}
-
-func (f nullFilter) Validate(t Transaction) error {
-	return nil
-}
-
 // Filters is an array of Filter.
 type Filters []Filter
 
-func (f Filters) Validate(t Transaction) error {
-	f = append(f, nullFilter{})
+func (f Filters) GetFilters(t Transaction) (*[]Filter, error) {
+	fs := []Filter(f)
+	return &fs, nil
+}
+
+func (f Filters) Validate(t Transaction, l Logger) error {
 	fs := make([]func(Transaction) error, len(f))
 	for i, x := range f {
-		fs[i] = x.Validate
+		fs[i] = func(t Transaction) error {
+			err := x.Validate(t)
+			if err != nil {
+				l.Error("")
+			}
+			return err
+		}
 	}
 	return sync.TryAll(t, fs...)
 }
@@ -44,32 +51,29 @@ type Hook interface {
 	Send(t Transaction) error
 }
 
-// nullHook always returns nil on Send.
-type nullHook struct{}
-
-func (h nullHook) Send(t Transaction) error {
-	return nil
+type HookProvider interface {
+	GetHooks(t Transaction) (*[]Hook, error)
 }
 
-func prepareHooks(hs []Hook) []func(Transaction) error {
-	hs = append(hs, nullHook{})
-	functions := make([]func(Transaction) error, len(hs))
-	for i, f := range hs {
-		functions[i] = f.Send
+type Hooks []Hook
+
+func (h Hooks) GetHooks(t Transaction) (*[]Hook, error) {
+	hs := []Hook(h)
+	return &hs, nil
+}
+
+func (f Hooks) Send(t Transaction, l Logger) error {
+	fs := make([]func(Transaction) error, len(f))
+	for i, x := range f {
+		fs[i] = func(t Transaction) error {
+			err := x.Send(t)
+			if err != nil {
+				l.Error("")
+			}
+			return err
+		}
 	}
-	return functions
-}
-
-type HooksAll []Hook
-
-func (h HooksAll) Send(t Transaction) error {
-	return sync.TryAll(t, prepareHooks(h)...)
-}
-
-type HooksSome []Hook
-
-func (h HooksSome) Send(t Transaction) error {
-	return sync.TrySome(t, prepareHooks(h)...)
+	return sync.TrySome(t, fs...)
 }
 
 type Logger interface {
@@ -77,8 +81,8 @@ type Logger interface {
 }
 
 type Session struct {
-	Filter
-	Hook
+	filterProviders []FilterProvider
+	hookProviders   []HookProvider
 
 	logger Logger
 
@@ -94,11 +98,11 @@ type Option func(*Session)
 
 func New(options ...Option) Session {
 	s := Session{
-		Filter:  nullFilter{},
-		Hook:    nullHook{},
-		id:      uuid.New(),
-		logger:  slog.Default(),
-		timeout: time.Second * 10,
+		filterProviders: []FilterProvider{Filters{}},
+		hookProviders:   []HookProvider{Hooks{}},
+		id:              uuid.New(),
+		logger:          slog.Default(),
+		timeout:         time.Second * 10,
 	}
 	for _, opt := range options {
 		opt(&s)
@@ -144,6 +148,30 @@ func (s *Session) Reset() {
 	s.data = nil
 }
 
+func (s Session) filters(t Transaction) (*Filters, error) {
+	filters := Filters{}
+	for _, fp := range s.filterProviders {
+		fs, err := fp.GetFilters(t)
+		if err != nil {
+			return nil, err
+		}
+		filters = append(filters, *fs...)
+	}
+	return &filters, nil
+}
+
+func (s Session) hooks(t Transaction) (*Hooks, error) {
+	hooks := Hooks{}
+	for _, hp := range s.hookProviders {
+		fs, err := hp.GetHooks(t)
+		if err != nil {
+			return nil, err
+		}
+		hooks = append(hooks, *fs...)
+	}
+	return &hooks, nil
+}
+
 // Commit creates, validates, and sends a Transaction.
 //
 // # Errors
@@ -159,22 +187,26 @@ func (s Session) Commit() error {
 	ec := make(chan error, 1)
 	go func() {
 		defer close(ec)
-		if err := s.Validate(*trans); err != nil {
-			s.logger.Error(
-				"validation failure",
-				"reason", err,
-				"id", trans.ID.String(),
-				"sender", trans.SenderAddress(),
-				"rcpt", trans.RcptAddress(),
-				"from", trans.From(),
-				"to", trans.To(),
-				"subject", trans.Subject(),
-				"text", trans.Text(),
-			)
+
+		filters, err := s.filters(*trans)
+		if err != nil {
+			s.logger.Error("")
 			ec <- err
 			return
 		}
-		ec <- s.Send(*trans)
+
+		hooks, err := s.hooks(*trans)
+		if err != nil {
+			s.logger.Error("")
+			ec <- err
+			return
+		}
+
+		if err := filters.Validate(*trans, s.logger); err != nil {
+			ec <- err
+			return
+		}
+		ec <- hooks.Send(*trans, s.logger)
 	}()
 
 	select {

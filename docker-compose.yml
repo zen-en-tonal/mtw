@@ -18,7 +18,7 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ./.db:/var/lib/postgresql/data
     healthcheck:
       test: 'pg_isready -U "${POSTGRES_USER:-postgres}"'
       interval: 10s

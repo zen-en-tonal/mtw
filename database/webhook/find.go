@@ -67,8 +67,8 @@ func (f Find) All() (*[]webhook.Webhook, error) {
 	return &hooks, nil
 }
 
-func (f Find) FindHooks(addr session.Address) ([]session.Hook, error) {
-	webhooks, err := f.ByAddr(addr)
+func (f Find) GetHooks(t session.Transaction) (*[]session.Hook, error) {
+	webhooks, err := f.ByAddr(session.MustParseAddr(t.To()))
 	if err != nil {
 		return nil, err
 	}
@@ -76,5 +76,5 @@ func (f Find) FindHooks(addr session.Address) ([]session.Hook, error) {
 	for i, webhook := range *webhooks {
 		hooks[i] = webhook
 	}
-	return hooks, nil
+	return &hooks, nil
 }
