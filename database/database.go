@@ -4,20 +4,21 @@ import (
 	"database/sql"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-const Driver = "postgres"
+const Driver = "sqlite3"
 
-func Migrate(db *sql.DB) error {
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+func Migrate(db *sql.DB, dbname string) error {
+	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		return err
 	}
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://migrations",
-		"postgres",
+		dbname,
 		driver,
 	)
 	if err != nil {
@@ -26,14 +27,14 @@ func Migrate(db *sql.DB) error {
 	return m.Up()
 }
 
-func Drop(db *sql.DB) error {
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+func Drop(db *sql.DB, dbname string) error {
+	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		return err
 	}
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://migrations",
-		"postgres",
+		dbname,
 		driver,
 	)
 	if err != nil {
