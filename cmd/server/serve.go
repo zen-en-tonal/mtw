@@ -65,7 +65,6 @@ func main() {
 	smtp := smtp.New(
 		smtp.WithSessionOptions(
 			session.WithFilters(
-				// spam.RcptMismatchFilter(),
 				address.Find(db),
 			),
 			session.WithHooksSome(
@@ -81,7 +80,9 @@ func main() {
 	smtp.Domain = domain
 	smtp.AllowInsecureAuth = false
 
-	rest := http.NewWithDB(db, domain, logger, authMiddle)
+	rest := gin.New()
+	rest.Use(authMiddle)
+	http.SetRoutes(rest, db, domain, logger)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
