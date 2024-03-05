@@ -6,10 +6,8 @@ mtw is the proxy that converts email notifications into webhooks.
 
 ### With Docker
 
-1. Create a `.env` file with the following content
 ```bash
-DOMAIN="localhost.lan"
-SECRET="mysecret"
+docker run -e "SECRET=mysecret" -e "DOMAIN=localhost.lan" -v ./data:/db -d mtw:v0.0.5
 ```
 
 ## Tutorial

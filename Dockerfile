@@ -3,6 +3,7 @@ FROM golang:1.22-alpine3.19 AS builder
 WORKDIR /app
 COPY . .
 
+RUN apk update && apk add alpine-sdk
 RUN go mod download
 RUN go build cmd/server/serve.go
 
@@ -13,8 +14,8 @@ EXPOSE 8080
 
 ENV GIN_MODE=release
 
-WORKDIR /app
 COPY migrations migrations
+RUN mkdir db
 COPY --from=builder /app/serve .
 
 CMD ["./serve"]
