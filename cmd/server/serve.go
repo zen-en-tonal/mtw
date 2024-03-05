@@ -60,17 +60,18 @@ func main() {
 		return
 	}
 
-	auth := ns.PlainAuth("", smtpUser, smtpPass, smtpHost)
+	hooks := []session.Hook{
+		session.AsHook(webhook.NewFind(db, wh.WithLogger(logger))),
+	}
+	if forwardTo != "" {
+		auth := ns.PlainAuth("", smtpUser, smtpPass, smtpHost)
+		hooks = append(hooks, forward.NewSmtp(smtpHost, auth, forwardTo))
+	}
 
 	smtp := smtp.New(
 		smtp.WithSessionOptions(
-			session.WithFilters(
-				address.Find(db),
-			),
-			session.WithHooksSome(
-				session.AsHook(webhook.NewFind(db, wh.WithLogger(logger))),
-				forward.NewSmtp(smtpHost, auth, forwardTo),
-			),
+			session.WithFilters(address.Find(db)),
+			session.WithHooksSome(hooks...),
 			session.WithLogger(logger),
 			session.WithTimeout(time.Second*5),
 		),
