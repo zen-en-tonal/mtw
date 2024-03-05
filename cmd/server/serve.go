@@ -17,7 +17,6 @@ import (
 	"github.com/zen-en-tonal/mtw/http"
 	"github.com/zen-en-tonal/mtw/session"
 	"github.com/zen-en-tonal/mtw/smtp"
-	wh "github.com/zen-en-tonal/mtw/webhook"
 )
 
 var (
@@ -64,13 +63,9 @@ func main() {
 
 	smtp := smtp.New(
 		smtp.WithSessionOptions(
-			session.WithFilters(
-				address.Find(db),
-			),
-			session.WithHooksSome(
-				session.AsHook(webhook.NewFind(db, wh.WithLogger(logger))),
-				forward.NewSmtp(smtpHost, auth, forwardTo),
-			),
+			session.AppendFilters(address.Find(db)),
+			session.AppendHookProviders(webhook.NewFind(db)),
+			session.AppendHooks(forward.NewSmtp(smtpHost, auth, forwardTo)),
 			session.WithLogger(logger),
 			session.WithTimeout(time.Second*5),
 		),

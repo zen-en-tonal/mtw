@@ -2,29 +2,33 @@ package session
 
 import "time"
 
-// WithFilters sets one or more filters into Session.
+// AppendFilters sets one or more filters into Session.
 // Each filters execute asynchronously.
 // Returns an error immediately if execution of at least one function fails.
-func WithFilters(xs ...Filter) Option {
+func AppendFilters(xs ...Filter) Option {
 	return func(s *Session) {
-		s.Filter = Filters(xs)
+		s.filterProviders = append(s.filterProviders, Filters(xs))
+	}
+}
+
+func AppendFilterProviders(p ...FilterProvider) Option {
+	return func(s *Session) {
+		s.filterProviders = append(s.filterProviders, p...)
 	}
 }
 
 // WithHooksAll sets one or more hooks into Session.
 // Each hooks execute asynchronously.
 // Returns an error immediately if execution of at least one function fails.
-func WithHooksAll(xs ...Hook) Option {
+func AppendHooks(xs ...Hook) Option {
 	return func(s *Session) {
-		s.Hook = HooksAll(xs)
+		s.hookProviders = append(s.hookProviders, Hooks(xs))
 	}
 }
 
-// WithHooksSome sets one or more hooks into Session.
-// Each hooks execute asynchronously.
-func WithHooksSome(xs ...Hook) Option {
+func AppendHookProviders(p ...HookProvider) Option {
 	return func(s *Session) {
-		s.Hook = HooksSome(xs)
+		s.hookProviders = append(s.hookProviders, p...)
 	}
 }
 

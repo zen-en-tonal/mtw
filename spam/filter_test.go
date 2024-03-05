@@ -31,7 +31,7 @@ func prepareSession(options ...session.Option) session.Session {
 
 func TestRcptMismatchFilter_Spam(t *testing.T) {
 	session := prepareSession(
-		session.WithFilters(RcptMismatchFilter()),
+		session.AppendFilters(RcptMismatchFilter()),
 	)
 	if err := session.SetRcpt("tom<tom@mail.com>"); err != nil {
 		panic(err)
@@ -43,7 +43,7 @@ func TestRcptMismatchFilter_Spam(t *testing.T) {
 
 func TestRcptMismatchFilter_Not_Spam(t *testing.T) {
 	session := prepareSession(
-		session.WithFilters(RcptMismatchFilter()),
+		session.AppendFilters(RcptMismatchFilter()),
 	)
 	if err := session.SetRcpt("bob<bob@mail.com>"); err != nil {
 		panic(err)
@@ -55,7 +55,7 @@ func TestRcptMismatchFilter_Not_Spam(t *testing.T) {
 
 func TestBlacklist_Reject(t *testing.T) {
 	session := prepareSession(
-		session.WithFilters(BlackListFilter(
+		session.AppendFilters(BlackListFilter(
 			`^apple@[a-z]+\.[a-z]+$`,
 			`^spam@[a-z]+\.[a-z]+$`,
 		)),
@@ -70,7 +70,7 @@ func TestBlacklist_Reject(t *testing.T) {
 
 func TestBlacklist_Pass(t *testing.T) {
 	session := prepareSession(
-		session.WithFilters(BlackListFilter(
+		session.AppendFilters(BlackListFilter(
 			`^spam@[a-z]+\.[a-z]+$`,
 		)),
 	)
