@@ -20,7 +20,7 @@ func newRepository(db *sql.DB) webhookRepository {
 func (r webhookRepository) upsert(table webhookTable) error {
 	_, err := r.conn.Exec(`
 		INSERT INTO webhooks VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT ON CONSTRAINT webhooks_pk
+		ON CONFLICT (id)
 		DO
 		UPDATE SET
 			endpoint = $2

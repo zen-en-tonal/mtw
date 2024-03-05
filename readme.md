@@ -6,41 +6,9 @@ mtw is the proxy that converts email notifications into webhooks.
 
 ### With Docker
 
-1. Create a `.env` file with the following content
 ```bash
-DOMAIN="localhost.lan"
-DB_CONN="postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
-SECRET="mysecret"
+docker run -e "SECRET=mysecret" -e "DOMAIN=localhost.lan" -v ./data:/db -d mtw:v0.0.5
 ```
-2. Create a `docker-compose.yml` file with the following conetnt
-```yml
-version: '3'
-services:
-  mtw:
-    image: zenentonal/mtw:v0.0.4
-    restart: unless-stopped
-    env_file: .env
-    depends_on:
-      db:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-      - "25:25"
-  db:
-    image: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - ./db:/var/lib/postgresql/data
-    healthcheck:
-      test: 'pg_isready -U "${POSTGRES_USER:-postgres}"'
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-```
-3. Run `docker compose up -d`
 
 ## Tutorial
 

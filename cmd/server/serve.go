@@ -28,30 +28,30 @@ var (
 	smtpHost  string = ""
 	forwardTo string = ""
 
-	dbconn string = ""
+	dbconn string = "db/sqlite3.db"
 
 	secret string = ""
 )
 
 func init() {
 	domain, _ = os.LookupEnv("DOMAIN")
+	secret, _ = os.LookupEnv("SECRET")
+
 	smtpUser, _ = os.LookupEnv("SMTP_USER")
 	smtpPass, _ = os.LookupEnv("SMTP_PASS")
 	smtpHost, _ = os.LookupEnv("SMTP_HOST")
 	forwardTo, _ = os.LookupEnv("FORWARD_TO")
-	dbconn, _ = os.LookupEnv("DB_CONN")
-	secret, _ = os.LookupEnv("SECRET")
 }
 
 func main() {
 	logger := slog.Default()
 
-	db, err := sql.Open("postgres", dbconn)
+	db, err := sql.Open(database.Driver, dbconn)
 	if err != nil {
 		logger.Error("failed to connect to db", "inner", err.Error())
 		return
 	}
-	if err := database.Migrate(db); err != nil {
+	if err := database.Migrate(db, "ql"); err != nil {
 		logger.Warn("migration failure", "inner", err.Error())
 	}
 
