@@ -90,13 +90,17 @@ func (w Webhook) Send(t session.Transaction) error {
 		return err
 	}
 	if resp.StatusCode >= 400 {
+		msg := new(bytes.Buffer)
+		msg.ReadFrom(resp.Body)
 		w.logger.Error(
 			"sent an http request but it responded with an error status",
 			"ID", t.ID.String(),
+			"WebhookID", w.id.String(),
 			"Endpoint", resp.Request.URL.String(),
 			"Method", resp.Request.Method,
 			"StatusCode", resp.StatusCode,
 			"Status", resp.Status,
+			"Msg", msg.String(),
 		)
 		return fmt.Errorf(
 			"sent an http request but it responded with an error status '%s'",
@@ -106,6 +110,7 @@ func (w Webhook) Send(t session.Transaction) error {
 	w.logger.Info(
 		"sent an http request with successed",
 		"ID", t.ID.String(),
+		"WebhookID", w.id.String(),
 		"Endpoint", resp.Request.URL.String(),
 		"Method", resp.Request.Method,
 		"StatusCode", resp.StatusCode,
