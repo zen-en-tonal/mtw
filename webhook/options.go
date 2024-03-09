@@ -1,11 +1,10 @@
 package webhook
 
 import (
-	"fmt"
+	"html"
 	"html/template"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,7 +26,7 @@ var tmplFuncs = map[string]interface{}{
 		return string(text)
 	},
 	"Escape": func(s string) string {
-		return strings.ReplaceAll(fmt.Sprintf("%#v", s), "\"", "")
+		return html.EscapeString(s)
 	},
 }
 
