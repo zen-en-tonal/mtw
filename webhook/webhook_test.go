@@ -15,8 +15,8 @@ func createMail(message string) io.Reader {
 	return strings.NewReader(header + message)
 }
 
-func testTransaction() session.Transaction {
-	m := createMail("hello")
+func testTransaction(msg string) session.Transaction {
+	m := createMail(msg)
 	t, err := session.NewTransaction(
 		uuid.New(),
 		session.MustParseAddr("alice@mail.com"),
@@ -31,7 +31,7 @@ func testTransaction() session.Transaction {
 
 func TestGet(t *testing.T) {
 	wh := New("http://example.local")
-	_, err := wh.PrepareRequest(testTransaction())
+	_, err := wh.PrepareRequest(testTransaction("hello"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,7 +48,7 @@ func Test_Blueprint(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	req, err := wh.PrepareRequest(testTransaction())
+	req, err := wh.PrepareRequest(testTransaction("hello"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -88,7 +88,7 @@ func Test_TemplateFunction_Limit(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	req, err := wh.PrepareRequest(testTransaction())
+	req, err := wh.PrepareRequest(testTransaction("hello"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -112,7 +112,7 @@ func Test_TemplateFunction_Limit_NoEffects(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	req, err := wh.PrepareRequest(testTransaction())
+	req, err := wh.PrepareRequest(testTransaction("hello"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -129,14 +129,14 @@ func Test_TemplateFunction_Escape(t *testing.T) {
 	bp := Blueprint{
 		Endpoint:    "http://example.local",
 		Method:      "POST",
-		Schema:      `{"msg":"{{Escape .Text | Limit 3}}"}`,
+		Schema:      `{"msg":"{{Escape .Text | Limit 6}}"}`,
 		ContentType: "application/json",
 	}
 	wh, err := FromBlueprint(bp)
 	if err != nil {
 		t.Error(err)
 	}
-	req, err := wh.PrepareRequest(testTransaction())
+	req, err := wh.PrepareRequest(testTransaction("hello\n!"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -146,5 +146,5 @@ func Test_TemplateFunction_Escape(t *testing.T) {
 	assert.Equal(t, "application/json", req.Header.Get("content-type"))
 	buf := make([]byte, req.ContentLength)
 	req.Body.Read(buf)
-	assert.Equal(t, `{"msg":"hel"}`, string(buf))
+	assert.Equal(t, "{\"msg\":\"hello\n\"}", string(buf))
 }
